@@ -102,8 +102,7 @@ fn traverse(
     visited: &mut Vec<bool>,
     connected_component: &mut Vec<usize>,
 ) {
-    let mut mystack: Vec<usize> = vec![point_index];
-    visited[point_index] = true;
+    let mut mystack = vec![point_index];
     while let Some(point_index) = mystack.pop() {
         if visited[point_index] {
             continue;

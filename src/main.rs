@@ -25,18 +25,15 @@ fn main() {
         .iter()
         .map(|square| make_graph(&square, points.len()))
         .collect();
-    for graph in &graphs {
-        println!("{:?}", graph);
-        //display_graph(&points, &graph);
-    }
+    //    for graph in &graphs {
+    //        println!("{:?}", graph);
+    //        //display_graph(&points, &graph);
+    //    }
     println!("the fused graph is");
     //display_graph(&points, &fuse_graphs(&graphs, &points));
     let final_graph = fuse_graphs(&graphs, &points);
     println!("{:?}", final_graph);
     let connected_components = compute_connected_components(&final_graph);
-    println!(
-        "count is {}, {:?}",
-        connected_components.len(),
-        connected_components
-    );
+    println!("count is {}", connected_components.len(),);
+    println!("{:?}", connected_components);
 }
