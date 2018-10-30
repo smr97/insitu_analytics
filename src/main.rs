@@ -3,7 +3,7 @@ extern crate grouille;
 extern crate itertools;
 extern crate rand;
 extern crate rayon;
-mod parallel_rayon;
+//mod parallel_rayon;
 mod sequential_algorithm;
 use grouille::{tycat::colored_display, Point};
 use itertools::*;
