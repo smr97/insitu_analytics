@@ -85,13 +85,13 @@ fn hash_points(points: &[Point]) -> Vec<HashMap<(usize, usize), Vec<usize>>> {
             )
         }),
     ];
-    points
-        .par_iter()
-        .enumerate()
-        .fold(HashMap::new(), |mut state, (index, point)| {
+    points.par_iter().enumerate().fold(
+        || HashMap::new(),
+        |mut state, (index, point)| {
             let key = hash_functions[0](point);
             state.entry(key).or_insert_with(Vec::new).push(index);
             state
-        });
+        },
+    );
     unimplemented!()
 }

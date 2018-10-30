@@ -102,15 +102,10 @@ fn traverse(
     visited: &mut Vec<bool>,
     connected_component: &mut Vec<usize>,
 ) {
-    let mut mystack: Vec<usize> = graph[point_index]
-        .iter()
-        .filter(|neighbour_index| visited[**neighbour_index] == false)
-        .cloned()
-        .collect();
-    connected_component.push(point_index);
+    let mut mystack: Vec<usize> = vec![point_index];
     visited[point_index] = true;
     while let Some(point_index) = mystack.pop() {
-        if visited[point_index] == true {
+        if visited[point_index] {
             continue;
         }
         visited[point_index] = true;
