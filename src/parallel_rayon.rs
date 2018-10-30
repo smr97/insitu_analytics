@@ -85,16 +85,13 @@ fn hash_points(points: &[Point]) -> Vec<HashMap<(usize, usize), Vec<usize>>> {
             )
         }),
     ];
-    let mut squares: Vec<HashMap<(usize, usize), Vec<usize>>> =
-        repeat_call(HashMap::new).take(4).collect();
-    points.par_iter().enumerate().for_each(|(index, point)| {
-        squares
-            .iter_mut()
-            .zip(hash_functions.iter())
-            .for_each(|(map, hash_function)| {
-                let key = hash_function(point);
-                map.entry(key).or_insert_with(Vec::new).push(index);
-            });
-    });
-    squares
+    points
+        .par_iter()
+        .enumerate()
+        .fold(HashMap::new(), |mut state, (index, point)| {
+            let key = hash_functions[0](point);
+            state.entry(key).or_insert_with(Vec::new).push(index);
+            state
+        });
+    unimplemented!()
 }

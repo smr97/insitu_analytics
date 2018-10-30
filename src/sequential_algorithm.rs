@@ -102,13 +102,25 @@ fn traverse(
     visited: &mut Vec<bool>,
     connected_component: &mut Vec<usize>,
 ) {
+    let mut mystack: Vec<usize> = graph[point_index]
+        .iter()
+        .filter(|neighbour_index| visited[**neighbour_index] == false)
+        .cloned()
+        .collect();
     connected_component.push(point_index);
     visited[point_index] = true;
-    graph[point_index].iter().for_each(|neighbour_index| {
-        if visited[*neighbour_index] == false {
-            traverse(*neighbour_index, graph, visited, connected_component)
+    while let Some(point_index) = mystack.pop() {
+        if visited[point_index] == true {
+            continue;
         }
-    });
+        visited[point_index] = true;
+        connected_component.push(point_index);
+        mystack.extend(
+            graph[point_index]
+                .iter()
+                .filter(|neighbour_index| visited[**neighbour_index] == false),
+        );
+    }
 }
 
 pub fn compute_connected_components(graph: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {

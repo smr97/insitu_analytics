@@ -2,7 +2,8 @@
 name = "analytics"
 version = "0.1.0"
 authors = ["Saurabh Raje <saurabh.mraje@gmail.com>"]
-
+[profile.release]
+debug = true
 [dependencies]
 grouille={path="../grouille"}
 rayon="*"
