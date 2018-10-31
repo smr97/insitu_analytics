@@ -13,7 +13,7 @@ use sequential_algorithm::*;
 
 fn main() {
     let points: Vec<_> = repeat_call(|| Point::new(random(), random()))
-        .take(20)
+        .take(300_000)
         .collect();
     let squares = hash_points(&points);
     /*colored_display(
@@ -23,17 +23,17 @@ fn main() {
     );*/
     let graphs: Vec<Vec<Vec<usize>>> = squares
         .iter()
-        .map(|square| make_graph(&square, points.len()))
+        .map(|square| make_graph(&square, &points))
         .collect();
     //    for graph in &graphs {
     //        println!("{:?}", graph);
     //        //display_graph(&points, &graph);
     //    }
-    println!("the fused graph is");
+    //println!("the fused graph is");
     //display_graph(&points, &fuse_graphs(&graphs, &points));
     let final_graph = fuse_graphs(&graphs, &points);
-    println!("{:?}", final_graph);
+    //println!("{:?}", final_graph);
     let connected_components = compute_connected_components(&final_graph);
     println!("count is {}", connected_components.len(),);
-    println!("{:?}", connected_components);
+    //println!("{:?}", connected_components);
 }

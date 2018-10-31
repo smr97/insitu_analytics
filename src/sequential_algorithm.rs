@@ -18,7 +18,7 @@ mod tests {
             let squares = hash_points(&points);
             let graphs: Vec<Vec<Vec<usize>>> = squares
                 .iter()
-                .map(|square| make_graph(&square, points.len()))
+                .map(|square| make_graph(&square, &points))
                 .collect();
             let final_graph = fuse_graphs(&graphs, &points);
             points
@@ -68,14 +68,16 @@ pub fn display_graph(points: &[Point], graph: &[Vec<usize>]) {
     //}
 }
 
-pub fn make_graph(
-    grid: &HashMap<(usize, usize), Vec<usize>>,
-    points_number: usize,
-) -> Vec<Vec<usize>> {
-    let mut graph: Vec<Vec<usize>> = repeat_call(Vec::new).take(points_number).collect();
+pub fn make_graph(grid: &HashMap<(usize, usize), Vec<usize>>, points: &[Point]) -> Vec<Vec<usize>> {
+    let mut graph: Vec<Vec<usize>> = repeat_call(Vec::new).take(points.len()).collect();
     for square in grid.values() {
         for point in square {
-            graph[*point] = square.iter().filter(|&p| p != point).cloned().collect();
+            graph[*point] = square
+                .iter()
+                .filter(|&p| {
+                    p != point && points[*point].distance_to(&points[*p]) <= THRESHOLD_DISTANCE
+                }).cloned()
+                .collect();
         }
     }
     graph
@@ -91,7 +93,6 @@ pub fn fuse_graphs(graphs: &Vec<Vec<Vec<usize>>>, points: &[Point]) -> Vec<Vec<u
                 .map(|graph| graph[point_index].clone())
                 .kmerge()
                 .dedup()
-                .filter(|neighbour| point.distance_to(&points[*neighbour]) <= THRESHOLD_DISTANCE)
                 .collect()
         }).collect()
 }
