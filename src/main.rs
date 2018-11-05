@@ -15,7 +15,7 @@ use sequential_algorithm::*;
 fn main() {
     let start = time::precise_time_ns();
     let points: Vec<_> = repeat_call(|| Point::new(random(), random()))
-        .take(200_000)
+        .take(400_000)
         .collect();
     let squares = hash_points(&points);
     /*colored_display(
@@ -38,9 +38,9 @@ fn main() {
     let connected_components = compute_connected_components(&final_graph);
     let end = time::precise_time_ns();
     println!(
-        "count is {}; time taken: {}",
+        "count is {}; time taken: {} seconds",
         connected_components.len(),
-        (end - start) as f64 / 1e6
+        (end - start) as f64 / 1e9
     );
     //println!("{:?}", connected_components);
 }
