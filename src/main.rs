@@ -3,6 +3,7 @@ extern crate grouille;
 extern crate itertools;
 extern crate rand;
 extern crate rayon;
+extern crate time;
 //mod parallel_rayon;
 mod sequential_algorithm;
 use grouille::{tycat::colored_display, Point};
@@ -12,8 +13,9 @@ use rand::random;
 use sequential_algorithm::*;
 
 fn main() {
+    let start = time::precise_time_ns();
     let points: Vec<_> = repeat_call(|| Point::new(random(), random()))
-        .take(300_000)
+        .take(200_000)
         .collect();
     let squares = hash_points(&points);
     /*colored_display(
@@ -34,6 +36,11 @@ fn main() {
     let final_graph = fuse_graphs(&graphs, &points);
     //println!("{:?}", final_graph);
     let connected_components = compute_connected_components(&final_graph);
-    println!("count is {}", connected_components.len(),);
+    let end = time::precise_time_ns();
+    println!(
+        "count is {}; time taken: {}",
+        connected_components.len(),
+        (end - start) as f64 / 1e6
+    );
     //println!("{:?}", connected_components);
 }

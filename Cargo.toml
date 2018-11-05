@@ -5,6 +5,7 @@ authors = ["Saurabh Raje <saurabh.mraje@gmail.com>"]
 [profile.release]
 debug = true
 [dependencies]
+time = "*"
 grouille={path="../grouille"}
 rayon="*"
 rayon_adaptive={path="../rayon-adaptive"}
