@@ -84,17 +84,27 @@ pub fn make_graph(grid: &HashMap<(usize, usize), Vec<usize>>, points: &[Point]) 
 }
 
 pub fn fuse_graphs(graphs: &Vec<Vec<Vec<usize>>>, points: &[Point]) -> Vec<Vec<usize>> {
-    points
-        .iter()
-        .enumerate()
-        .map(|(point_index, point)| {
-            graphs
-                .iter()
-                .map(|graph| graph[point_index].clone())
-                .kmerge()
-                .dedup()
-                .collect()
-        }).collect()
+    let mut final_graph: Vec<Vec<usize>> = Vec::with_capacity(points.len() + 1);
+    unsafe {
+        final_graph.set_len(points.len());
+    }
+    final_graph.extend({
+        points.iter().enumerate().map(|(point_index, _)| {
+            let mut row: Vec<usize> = Vec::with_capacity(points.len() + 1);
+            unsafe {
+                row.set_len(points.len());
+            }
+            row.extend(
+                graphs
+                    .iter()
+                    .map(|graph| graph[point_index].clone())
+                    .kmerge()
+                    .dedup(),
+            );
+            row
+        })
+    });
+    final_graph
 }
 
 fn traverse(
