@@ -3,7 +3,7 @@ use itertools::repeat_call;
 use itertools::Itertools;
 use rand::random;
 use std::collections::HashMap;
-const THRESHOLD_DISTANCE: f64 = 0.004;
+const THRESHOLD_DISTANCE: f64 = 0.0032;
 const TESTS_NUMBER: u64 = 100;
 #[cfg(test)]
 mod tests {

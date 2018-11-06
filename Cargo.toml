@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["Saurabh Raje <saurabh.mraje@gmail.com>"]
 [profile.release]
 debug = true
+[dev-dependencies]
+criterion="*"
 [dependencies]
 time = "*"
 grouille={path="../grouille"}
@@ -11,3 +13,7 @@ rayon="*"
 rayon_adaptive={path="../rayon-adaptive"}
 itertools="*"
 rand="*"
+[[bench]]
+name ="insitu_analytics"
+path = "benches/insitu_analytics.rs"
+harness = false

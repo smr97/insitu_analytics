@@ -13,10 +13,10 @@ use rand::random;
 use sequential_algorithm::*;
 
 fn main() {
-    let start = time::precise_time_ns();
     let points: Vec<_> = repeat_call(|| Point::new(random(), random()))
-        .take(400_000)
+        .take(200_000)
         .collect();
+    let start = time::precise_time_ns();
     let squares = hash_points(&points);
     /*colored_display(
         squares[0]
