@@ -72,12 +72,14 @@ pub fn make_graph(grid: &HashMap<(usize, usize), Vec<usize>>, points: &[Point]) 
     let mut graph: Vec<Vec<usize>> = repeat_call(Vec::new).take(points.len()).collect();
     for square in grid.values() {
         for point in square {
-            graph[*point] = square
-                .iter()
-                .filter(|&p| {
-                    p != point && points[*point].distance_to(&points[*p]) <= THRESHOLD_DISTANCE
-                }).cloned()
-                .collect();
+            graph[*point] = Vec::with_capacity(points.len() / 10000);
+            graph[*point].extend(
+                square
+                    .iter()
+                    .filter(|&p| {
+                        p != point && points[*point].distance_to(&points[*p]) <= THRESHOLD_DISTANCE
+                    }).cloned(),
+            );
         }
     }
     graph
@@ -85,15 +87,9 @@ pub fn make_graph(grid: &HashMap<(usize, usize), Vec<usize>>, points: &[Point]) 
 
 pub fn fuse_graphs(graphs: &Vec<Vec<Vec<usize>>>, points: &[Point]) -> Vec<Vec<usize>> {
     let mut final_graph: Vec<Vec<usize>> = Vec::with_capacity(points.len() + 1);
-    unsafe {
-        final_graph.set_len(points.len());
-    }
     final_graph.extend({
         points.iter().enumerate().map(|(point_index, _)| {
-            let mut row: Vec<usize> = Vec::with_capacity(points.len() + 1);
-            unsafe {
-                row.set_len(points.len());
-            }
+            let mut row: Vec<usize> = Vec::with_capacity(points.len() / 10000);
             row.extend(
                 graphs
                     .iter()
