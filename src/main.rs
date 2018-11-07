@@ -11,36 +11,48 @@ use itertools::*;
 //use parallel_rayon::*;
 use rand::random;
 use sequential_algorithm::*;
-
+const THRESHOLD_DISTANCE: f64 = 0.0031;
+const NUM_POINTS: usize = 200_000;
+const RUNS_NUMBER: u32 = 100;
 fn main() {
-    let points: Vec<_> = repeat_call(|| Point::new(random(), random()))
-        .take(200_000)
-        .collect();
-    let start = time::precise_time_ns();
-    let squares = hash_points(&points);
-    /*colored_display(
+    let times_per_square: Vec<(f64, f64)> = (0..RUNS_NUMBER)
+        .map(|run_index| {
+            let points: Vec<_> = repeat_call(|| Point::new(random(), random()))
+                .take(NUM_POINTS)
+                .collect();
+            let squares = hash_points(&points, THRESHOLD_DISTANCE + run_index as f64 / 100_000.0);
+            /*colored_display(
         squares[0]
             .values()
             .map(|v| v.iter().map(|i| points[*i]).collect::<Vec<Point>>()),
     );*/
-    let graphs: Vec<Vec<Vec<usize>>> = squares
-        .iter()
-        .map(|square| make_graph(&square, &points))
-        .collect();
-    //    for graph in &graphs {
-    //        println!("{:?}", graph);
-    //        //display_graph(&points, &graph);
-    //    }
-    //println!("the fused graph is");
-    //display_graph(&points, &fuse_graphs(&graphs, &points));
-    let final_graph = fuse_graphs(&graphs, &points);
-    //println!("{:?}", final_graph);
-    let connected_components = compute_connected_components(&final_graph);
-    let end = time::precise_time_ns();
-    println!(
-        "count is {}; time taken: {} seconds",
-        connected_components.len(),
-        (end - start) as f64 / 1e9
-    );
-    //println!("{:?}", connected_components);
+            let compute_time_start = time::precise_time_ns();
+            let graphs: Vec<Vec<Vec<usize>>> = squares
+                .iter()
+                .map(|square| {
+                    make_graph(
+                        &square,
+                        &points,
+                        THRESHOLD_DISTANCE + run_index as f64 / 100_000.0,
+                    )
+                }).collect();
+            let number_of_squares = squares[0].keys().len();
+            //    for graph in &graphs {
+            //        println!("{:?}", graph);
+            //        //display_graph(&points, &graph);
+            //    }
+            //println!("the fused graph is");
+            //display_graph(&points, &fuse_graphs(&graphs, &points));
+            let final_graph = fuse_graphs(&graphs, &points);
+            //println!("{:?}", final_graph);
+            let connected_components = compute_connected_components(&final_graph);
+            //println!("{}", connected_components.len());
+            assert!(connected_components.len() > 1);
+            let compute_time_end = time::precise_time_ns();
+            (
+                (compute_time_end - compute_time_start) as f64 / (1e3 * number_of_squares as f64),
+                THRESHOLD_DISTANCE + run_index as f64 / 100_000.0,
+            )
+        }).collect();
+    println!("{:?}", times_per_square);
 }

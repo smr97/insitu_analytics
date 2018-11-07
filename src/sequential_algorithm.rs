@@ -3,7 +3,6 @@ use itertools::repeat_call;
 use itertools::Itertools;
 use rand::random;
 use std::collections::HashMap;
-const THRESHOLD_DISTANCE: f64 = 0.0032;
 const TESTS_NUMBER: u64 = 100;
 #[cfg(test)]
 mod tests {
@@ -11,14 +10,15 @@ mod tests {
 
     #[test]
     fn check_hashing() {
+        const THRESHOLD_DISTANCE: f64 = 0.0032;
         (0..100).for_each(|_| {
             let points: Vec<_> = repeat_call(|| Point::new(random(), random()))
                 .take(200)
                 .collect();
-            let squares = hash_points(&points);
+            let squares = hash_points(&points, THRESHOLD_DISTANCE);
             let graphs: Vec<Vec<Vec<usize>>> = squares
                 .iter()
-                .map(|square| make_graph(&square, &points))
+                .map(|square| make_graph(&square, &points, THRESHOLD_DISTANCE))
                 .collect();
             let final_graph = fuse_graphs(&graphs, &points);
             points
@@ -68,7 +68,11 @@ pub fn display_graph(points: &[Point], graph: &[Vec<usize>]) {
     //}
 }
 
-pub fn make_graph(grid: &HashMap<(usize, usize), Vec<usize>>, points: &[Point]) -> Vec<Vec<usize>> {
+pub fn make_graph(
+    grid: &HashMap<(usize, usize), Vec<usize>>,
+    points: &[Point],
+    threshold_distance: f64,
+) -> Vec<Vec<usize>> {
     let mut graph: Vec<Vec<usize>> = repeat_call(Vec::new).take(points.len()).collect();
     for square in grid.values() {
         for point in square {
@@ -77,7 +81,7 @@ pub fn make_graph(grid: &HashMap<(usize, usize), Vec<usize>>, points: &[Point]) 
                 square
                     .iter()
                     .filter(|&p| {
-                        p != point && points[*point].distance_to(&points[*p]) <= THRESHOLD_DISTANCE
+                        p != point && points[*point].distance_to(&points[*p]) <= threshold_distance
                     }).cloned(),
             );
         }
@@ -138,8 +142,11 @@ pub fn compute_connected_components(graph: &Vec<Vec<usize>>) -> Vec<Vec<usize>> 
         }).collect::<Vec<Vec<usize>>>()
 }
 
-pub fn hash_points(points: &[Point]) -> Vec<HashMap<(usize, usize), Vec<usize>>> {
-    let SIDE: f64 = THRESHOLD_DISTANCE * 2.0f64;
+pub fn hash_points(
+    points: &[Point],
+    threshold_distance: f64,
+) -> Vec<HashMap<(usize, usize), Vec<usize>>> {
+    let SIDE: f64 = threshold_distance * 2.0f64;
     let hash_functions = [
         Box::new(|p: &Point| ((p.x / SIDE).floor() as usize, (p.y / SIDE).floor() as usize))
             as Box<Fn(&Point) -> (usize, usize)>,
