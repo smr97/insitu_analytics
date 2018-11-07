@@ -50,7 +50,7 @@ fn main() {
             assert!(connected_components.len() > 1);
             let compute_time_end = time::precise_time_ns();
             (
-                (compute_time_end - compute_time_start) as f64 / (1e3 * number_of_squares as f64),
+                (compute_time_end - compute_time_start) as f64,
                 THRESHOLD_DISTANCE + run_index as f64 / 100_000.0,
             )
         }).collect();
