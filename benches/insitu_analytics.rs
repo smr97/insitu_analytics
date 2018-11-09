@@ -10,15 +10,15 @@ use grouille::Point;
 use itertools::repeat_call;
 use rand::random;
 const SIZE: usize = 200_000;
-
+const THRESHOLD_DISTANCE: f64 = 0.0032;
 fn process_points(points: &[Point]) {
-    let squares = hash_points(points);
-    let graphs: Vec<Vec<Vec<usize>>> = squares
+    let squares = hash_points(points, THRESHOLD_DISTANCE);
+    let graphs: Vec<Graph> = squares
         .iter()
-        .map(|square| make_graph(&square, points))
+        .map(|square| Graph::new(&square, points, THRESHOLD_DISTANCE))
         .collect();
-    let final_graph = fuse_graphs(&graphs, points);
-    let connected_components = compute_connected_components(&final_graph);
+    let final_graph = fuse_graphs(graphs, points.len());
+    let connected_components = final_graph.compute_connected_components();
     assert!(connected_components.len() > 0);
 }
 

@@ -4,14 +4,14 @@ extern crate itertools;
 extern crate rand;
 extern crate rayon;
 extern crate time;
-//mod parallel_rayon;
+pub mod clique;
 mod sequential_algorithm;
 use grouille::{tycat::colored_display, Point};
 use itertools::*;
 //use parallel_rayon::*;
 use rand::random;
 use sequential_algorithm::*;
-const THRESHOLD_DISTANCE: f64 = 0.0031;
+const THRESHOLD_DISTANCE: f64 = 0.42;
 const NUM_POINTS: usize = 200_000;
 const RUNS_NUMBER: u32 = 100;
 fn main() {
@@ -27,10 +27,10 @@ fn main() {
             .map(|v| v.iter().map(|i| points[*i]).collect::<Vec<Point>>()),
     );*/
             let compute_time_start = time::precise_time_ns();
-            let graphs: Vec<Vec<Vec<usize>>> = squares
+            let graphs: Vec<Graph> = squares
                 .iter()
                 .map(|square| {
-                    make_graph(
+                    Graph::new(
                         &square,
                         &points,
                         THRESHOLD_DISTANCE + run_index as f64 / 100_000.0,
@@ -43,9 +43,9 @@ fn main() {
             //    }
             //println!("the fused graph is");
             //display_graph(&points, &fuse_graphs(&graphs, &points));
-            let final_graph = fuse_graphs(&graphs, &points);
+            let final_graph = fuse_graphs(graphs, points.len());
             //println!("{:?}", final_graph);
-            let connected_components = compute_connected_components(&final_graph);
+            let connected_components = final_graph.compute_connected_components();
             //println!("{}", connected_components.len());
             assert!(connected_components.len() > 1);
             let compute_time_end = time::precise_time_ns();
