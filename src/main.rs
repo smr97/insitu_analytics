@@ -29,11 +29,21 @@ fn main() {
             let compute_time_start = time::precise_time_ns();
             let graphs: Vec<Graph> = squares
                 .iter()
-                .map(|square| {
+                .zip(
+                    [
+                        (0.0, 0.0),
+                        (THRESHOLD_DISTANCE, 0.0),
+                        (0.0, THRESHOLD_DISTANCE),
+                        (THRESHOLD_DISTANCE, THRESHOLD_DISTANCE),
+                    ]
+                        .into_iter(),
+                ) // TODO: fixme
+                .map(|(square, hashing_offsets)| {
                     Graph::new(
                         &square,
                         &points,
                         THRESHOLD_DISTANCE + run_index as f64 / 100_000.0,
+                        *hashing_offsets,
                     )
                 }).collect();
             let number_of_squares = squares[0].keys().len();

@@ -80,14 +80,17 @@ impl Graph {
         grid: &HashMap<(usize, usize), Vec<usize>>,
         points: &[Point],
         threshold_distance: f64,
+        hashing_offsets: (f64, f64),
     ) -> Self {
         let mut final_graph: Vec<Vec<usize>> = repeat_call(Vec::new).take(points.len()).collect();
         //println!("we have {} squares", grid.len());
         let mut inner_points: Vec<Vec<usize>> = Vec::new();
-        for square in grid.values() {
+        for (square_coordinate, square) in grid {
             let mut smaller_squares = hash_internal(
                 square.iter().map(|index| (*index, points[*index])),
                 threshold_distance,
+                hashing_offsets,
+                square_coordinate,
             );
             let mut relevant_points = HashSet::new();
             smaller_squares.values_mut().for_each(|mut smaller_square| {
@@ -101,7 +104,7 @@ impl Graph {
                     &mut relevant_points,
                     &mut smaller_square,
                     |i| points[*i].x,
-                    |i| -points[*i].y,
+                    |i| -(points[*i].y),
                 );
                 update_side(
                     &mut relevant_points,
@@ -113,7 +116,7 @@ impl Graph {
                     &mut relevant_points,
                     &mut smaller_square,
                     |i| points[*i].y,
-                    |i| -points[*i].x,
+                    |i| -(points[*i].x),
                 );
             });
             inner_points.extend(
@@ -183,13 +186,25 @@ impl Graph {
     }
 }
 
-fn hash_internal<I>(points: I, threshold_distance: f64) -> HashMap<(usize, usize), Vec<usize>>
+fn hash_internal<I>(
+    points: I,
+    threshold_distance: f64,
+    hashing_offsets: (f64, f64),
+    coordinate: &(usize, usize),
+) -> HashMap<(usize, usize), Vec<usize>>
 where
     I: Iterator<Item = (usize, Point)>,
 {
     let side = threshold_distance / 2.0f64.sqrt();
     let mut small_squares = HashMap::new();
-    let hash_function = |p: &Point| ((p.x / side).floor() as usize, (p.y / side).floor() as usize);
+    let hash_function = |p: &Point| {
+        (
+            ((p.x + hashing_offsets.0 - coordinate.0 as f64 * 2.0 * threshold_distance) / side)
+                .floor() as usize,
+            ((p.y + hashing_offsets.1 - coordinate.1 as f64 * 2.0 * threshold_distance) / side)
+                .floor() as usize,
+        )
+    };
     points.for_each(|(index, point)| {
         let key = hash_function(&point);
         small_squares
