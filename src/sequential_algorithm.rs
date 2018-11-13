@@ -6,6 +6,7 @@ use rand::random;
 use std::collections::HashMap;
 use std::collections::HashSet;
 const TESTS_NUMBER: u64 = 100;
+const SWITCH_THRESHOLD: usize = 500;
 //#[cfg(test)]
 //mod tests {
 //    use super::*;
@@ -86,62 +87,77 @@ impl Graph {
         //println!("we have {} squares", grid.len());
         let mut inner_points: Vec<Vec<usize>> = Vec::new();
         for (square_coordinate, square) in grid {
-            let mut smaller_squares = hash_internal(
-                square.iter().map(|index| (*index, points[*index])),
-                threshold_distance,
-                hashing_offsets,
-                square_coordinate,
-            );
-            let mut relevant_points = HashSet::new();
-            smaller_squares.values_mut().for_each(|mut smaller_square| {
-                update_side(
-                    &mut relevant_points,
-                    &mut smaller_square,
-                    |i| points[*i].x,
-                    |i| points[*i].y,
+            if square.len() > SWITCH_THRESHOLD {
+                let mut smaller_squares = hash_internal(
+                    square.iter().map(|index| (*index, points[*index])),
+                    threshold_distance,
+                    hashing_offsets,
+                    square_coordinate,
                 );
-                update_side(
-                    &mut relevant_points,
-                    &mut smaller_square,
-                    |i| points[*i].x,
-                    |i| -(points[*i].y),
+                let mut relevant_points = HashSet::new();
+                smaller_squares.values_mut().for_each(|mut smaller_square| {
+                    update_side(
+                        &mut relevant_points,
+                        &mut smaller_square,
+                        |i| points[*i].x,
+                        |i| points[*i].y,
+                    );
+                    update_side(
+                        &mut relevant_points,
+                        &mut smaller_square,
+                        |i| points[*i].x,
+                        |i| -(points[*i].y),
+                    );
+                    update_side(
+                        &mut relevant_points,
+                        &mut smaller_square,
+                        |i| points[*i].y,
+                        |i| points[*i].x,
+                    );
+                    update_side(
+                        &mut relevant_points,
+                        &mut smaller_square,
+                        |i| points[*i].y,
+                        |i| -(points[*i].x),
+                    );
+                });
+                inner_points.extend(
+                    smaller_squares.into_iter().map(|(_, value)| value), //.cloned()
                 );
-                update_side(
-                    &mut relevant_points,
-                    &mut smaller_square,
-                    |i| points[*i].y,
-                    |i| points[*i].x,
-                );
-                update_side(
-                    &mut relevant_points,
-                    &mut smaller_square,
-                    |i| points[*i].y,
-                    |i| -(points[*i].x),
-                );
-            });
-            inner_points.extend(
-                smaller_squares.into_iter().map(|(_, value)| value), //.cloned()
-            );
-            //tycat!(
-            //    square
-            //        .iter()
-            //        .map(|index| points[*index])
-            //        .collect::<Vec<Point>>(),
-            //    relevant_points
-            //        .iter()
-            //        .map(|index| points[*index])
-            //        .collect::<Vec<Point>>()
-            //);
-            for point in &relevant_points {
-                final_graph[*point] = Vec::with_capacity(points.len() / 10000);
-                final_graph[*point].extend(
-                    relevant_points
-                        .iter()
-                        .filter(|&p| {
-                            *p != *point
-                                && points[*point].distance_to(&points[*p]) <= threshold_distance
-                        }).cloned(),
-                );
+                //tycat!(
+                //    square
+                //        .iter()
+                //        .map(|index| points[*index])
+                //        .collect::<Vec<Point>>(),
+                //    relevant_points
+                //        .iter()
+                //        .map(|index| points[*index])
+                //        .collect::<Vec<Point>>()
+                //);
+                for point in &relevant_points {
+                    final_graph[*point] = Vec::with_capacity(points.len() / 10000);
+                    final_graph[*point].extend(
+                        relevant_points
+                            .iter()
+                            .filter(|&p| {
+                                *p != *point
+                                    && points[*point].distance_to(&points[*p]) <= threshold_distance
+                            }).cloned(),
+                    );
+                }
+            } else {
+                for point in square {
+                    final_graph[*point as usize] = Vec::with_capacity(points.len() / 10000);
+                    final_graph[*point as usize].extend(
+                        square
+                            .iter()
+                            .filter(|&p| {
+                                p != point
+                                    && points[*point as usize].distance_to(&points[*p as usize])
+                                        <= threshold_distance
+                            }).cloned(),
+                    );
+                }
             }
         }
         Graph {

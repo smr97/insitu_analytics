@@ -11,16 +11,19 @@ use itertools::*;
 //use parallel_rayon::*;
 use rand::random;
 use sequential_algorithm::*;
-const THRESHOLD_DISTANCE: f64 = 0.30;
-const NUM_POINTS: usize = 10_000;
-const RUNS_NUMBER: u32 = 1;
+const THRESHOLD_DISTANCE: f64 = 0.001;
+const NUM_POINTS: usize = 150_000;
+const RUNS_NUMBER: u32 = 200;
 fn main() {
     let times_per_square: Vec<(f64, f64)> = (0..RUNS_NUMBER)
         .map(|run_index| {
             let points: Vec<_> = repeat_call(|| Point::new(random(), random()))
                 .take(NUM_POINTS)
                 .collect();
-            let squares = hash_points(&points, THRESHOLD_DISTANCE + run_index as f64 / 100_000.0);
+            let squares = hash_points(
+                &points,
+                THRESHOLD_DISTANCE + run_index as f64 * 2.5 / 1_000.0,
+            );
             /*colored_display(
         squares[0]
             .values()
@@ -42,7 +45,7 @@ fn main() {
                     Graph::new(
                         &square,
                         &points,
-                        THRESHOLD_DISTANCE + run_index as f64 / 100_000.0,
+                        THRESHOLD_DISTANCE + run_index as f64 * 2.5 / 1_000.0,
                         *hashing_offsets,
                     )
                 }).collect();
@@ -64,7 +67,7 @@ fn main() {
             let compute_time_end = time::precise_time_ns();
             (
                 (compute_time_end - compute_time_start) as f64,
-                THRESHOLD_DISTANCE + run_index as f64 / 100_000.0,
+                THRESHOLD_DISTANCE + run_index as f64 * 2.5 / 1_000.0,
             )
         }).collect();
     println!("{:?}", times_per_square);
