@@ -11,9 +11,9 @@ use itertools::*;
 //use parallel_rayon::*;
 use rand::random;
 use sequential_algorithm::*;
-const THRESHOLD_DISTANCE: f64 = 0.001;
+const THRESHOLD_DISTANCE: f64 = 0.1;
 const NUM_POINTS: usize = 150_000;
-const RUNS_NUMBER: u32 = 200;
+const RUNS_NUMBER: u32 = 1;
 fn main() {
     let times_per_square: Vec<(f64, f64)> = (0..RUNS_NUMBER)
         .map(|run_index| {
@@ -59,16 +59,16 @@ fn main() {
             let final_graph = fuse_graphs(graphs, points.len());
             //println!("{:?}", final_graph);
             let connected_components = final_graph.compute_connected_components();
-            println!(
-                "connected components {}, number of squares {}",
-                connected_components.len(),
-                number_of_squares
-            );
+            //println!(
+            //    "connected components {}, number of squares {}",
+            //    connected_components.len(),
+            //    number_of_squares
+            //);
             let compute_time_end = time::precise_time_ns();
             (
                 (compute_time_end - compute_time_start) as f64,
                 THRESHOLD_DISTANCE + run_index as f64 * 2.5 / 1_000.0,
             )
         }).collect();
-    println!("{:?}", times_per_square);
+    //println!("{:?}", times_per_square);
 }
