@@ -11,7 +11,7 @@ use itertools::*;
 //use parallel_rayon::*;
 use rand::random;
 use sequential_algorithm::*;
-const THRESHOLD_DISTANCE: f64 = 0.1;
+const THRESHOLD_DISTANCE: f64 = 0.5;
 const NUM_POINTS: usize = 150_000;
 const RUNS_NUMBER: u32 = 1;
 fn main() {

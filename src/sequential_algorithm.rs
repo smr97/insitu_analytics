@@ -2,10 +2,11 @@ use clique::update_side;
 use grouille::{tycat::colored_display, Point, Segment};
 use itertools::repeat_call;
 use itertools::Itertools;
+use mymerge::*;
 use rand::random;
 use std::collections::HashMap;
 use std::collections::HashSet;
-const TESTS_NUMBER: u64 = 100;
+const PREALLOCATION_FACTOR: usize = 100;
 const SWITCH_THRESHOLD: usize = 500;
 //#[cfg(test)]
 //mod tests {
@@ -83,7 +84,10 @@ impl Graph {
         threshold_distance: f64,
         hashing_offsets: (f64, f64),
     ) -> Self {
-        let mut final_graph: Vec<Vec<usize>> = repeat_call(Vec::new).take(points.len()).collect();
+        let mut final_graph: Vec<Vec<usize>> =
+            repeat_call(|| Vec::with_capacity(points.len() / PREALLOCATION_FACTOR))
+                .take(points.len())
+                .collect();
         //println!("we have {} squares", grid.len());
         let mut inner_points: Vec<Vec<usize>> = Vec::new();
         for (square_coordinate, square) in grid {
@@ -135,7 +139,6 @@ impl Graph {
                 //        .collect::<Vec<Point>>()
                 //);
                 for point in &relevant_points {
-                    final_graph[*point] = Vec::with_capacity(points.len() / 10000);
                     final_graph[*point].extend(
                         relevant_points
                             .iter()
@@ -147,7 +150,6 @@ impl Graph {
                 }
             } else {
                 for point in square {
-                    final_graph[*point as usize] = Vec::with_capacity(points.len() / 10000);
                     final_graph[*point as usize].extend(
                         square
                             .iter()
@@ -235,7 +237,7 @@ pub fn fuse_graphs(graphs: Vec<Graph>, number_of_points: usize) -> Graph {
     let mut outer_vertices: Vec<Vec<usize>> = Vec::with_capacity(number_of_points);
     outer_vertices.extend({
         (0..number_of_points).map(|point_index| {
-            let mut row: Vec<usize> = Vec::with_capacity(number_of_points / 10000);
+            let mut row: Vec<usize> = Vec::with_capacity(number_of_points / PREALLOCATION_FACTOR);
             row.extend(
                 graphs
                     .iter()
