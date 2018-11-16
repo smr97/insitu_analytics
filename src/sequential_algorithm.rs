@@ -242,7 +242,7 @@ pub fn fuse_graphs(graphs: Vec<Graph>, number_of_points: usize) -> Graph {
                 graphs
                     .iter()
                     .map(|graph| graph.relevant_points[point_index].iter())
-                    .kmerge()
+                    .mymerge()
                     .dedup()
                     .clone(),
             );

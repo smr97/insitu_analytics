@@ -5,6 +5,7 @@ extern crate rand;
 extern crate rayon;
 extern crate time;
 pub mod clique;
+pub mod mymerge;
 mod sequential_algorithm;
 use grouille::{tycat::colored_display, Point};
 use itertools::*;
