@@ -2,7 +2,7 @@ use clique::update_side;
 use grouille::{tycat::colored_display, Point, Segment};
 use itertools::repeat_call;
 use itertools::Itertools;
-use mymerge::*;
+//use mymerge::*;
 use rand::random;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -242,7 +242,7 @@ pub fn fuse_graphs(graphs: Vec<Graph>, number_of_points: usize) -> Graph {
                 graphs
                     .iter()
                     .map(|graph| graph.relevant_points[point_index].iter())
-                    .mymerge()
+                    .kmerge()
                     .dedup()
                     .clone(),
             );
