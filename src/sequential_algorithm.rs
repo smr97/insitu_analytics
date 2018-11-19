@@ -1,9 +1,8 @@
 use clique::update_side;
-use grouille::{tycat::colored_display, Point, Segment};
+use grouille::Point;
 use itertools::repeat_call;
 use itertools::Itertools;
 //use mymerge::*;
-use rand::random;
 use std::collections::HashMap;
 use std::collections::HashSet;
 const PREALLOCATION_FACTOR: usize = 100;
@@ -55,8 +54,8 @@ const SWITCH_THRESHOLD: usize = 500;
 //}
 
 pub struct Graph {
-    relevant_points: Vec<Vec<usize>>,
-    cliques: Vec<Vec<usize>>,
+    pub relevant_points: Vec<Vec<usize>>,
+    pub cliques: Vec<Vec<usize>>,
 }
 impl Graph {
     //pub fn display_graph(points: &[Point], graph: &[Vec<usize>]) {
@@ -204,7 +203,7 @@ impl Graph {
     }
 }
 
-fn hash_internal<I>(
+pub fn hash_internal<I>(
     points: I,
     threshold_distance: f64,
     hashing_offsets: (f64, f64),

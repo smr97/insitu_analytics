@@ -1,10 +1,3 @@
-extern crate grouille;
-extern crate itertools;
-extern crate rand;
-use grouille::{tycat, Point};
-use itertools::repeat_call;
-use rand::random;
-use std::cmp::Ordering;
 use std::collections::HashSet;
 
 type PointIndex = usize;
@@ -45,43 +38,43 @@ pub fn update_side<X, Y>(
     });
 }
 
-fn main() {
-    let points: Vec<Point> = repeat_call(|| Point::new(random(), random()))
-        .take(10_000)
-        .collect();
-
-    let mut edge_points = HashSet::new();
-    let mut indices: Vec<PointIndex> = (0..points.len()).collect();
-    update_side(
-        &mut edge_points,
-        &mut indices,
-        |i| points[*i].x,
-        |i| points[*i].y,
-    );
-    update_side(
-        &mut edge_points,
-        &mut indices,
-        |i| points[*i].x,
-        |i| -points[*i].y,
-    );
-    update_side(
-        &mut edge_points,
-        &mut indices,
-        |i| points[*i].y,
-        |i| points[*i].x,
-    );
-    update_side(
-        &mut edge_points,
-        &mut indices,
-        |i| points[*i].y,
-        |i| -points[*i].x,
-    );
-
-    let dpoints: Vec<_> = edge_points.iter().map(|i| points[*i]).collect();
-    tycat!(points, dpoints);
-    println!(
-        "we now have {} points instead of {} !",
-        dpoints.len(),
-        points.len()
-    );
-}
+//fn main() {
+//    let points: Vec<Point> = repeat_call(|| Point::new(random(), random()))
+//        .take(10_000)
+//        .collect();
+//
+//    let mut edge_points = HashSet::new();
+//    let mut indices: Vec<PointIndex> = (0..points.len()).collect();
+//    update_side(
+//        &mut edge_points,
+//        &mut indices,
+//        |i| points[*i].x,
+//        |i| points[*i].y,
+//    );
+//    update_side(
+//        &mut edge_points,
+//        &mut indices,
+//        |i| points[*i].x,
+//        |i| -points[*i].y,
+//    );
+//    update_side(
+//        &mut edge_points,
+//        &mut indices,
+//        |i| points[*i].y,
+//        |i| points[*i].x,
+//    );
+//    update_side(
+//        &mut edge_points,
+//        &mut indices,
+//        |i| points[*i].y,
+//        |i| -points[*i].x,
+//    );
+//
+//    let dpoints: Vec<_> = edge_points.iter().map(|i| points[*i]).collect();
+//    tycat!(points, dpoints);
+//    println!(
+//        "we now have {} points instead of {} !",
+//        dpoints.len(),
+//        points.len()
+//    );
+//}
