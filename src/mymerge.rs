@@ -16,16 +16,14 @@ where
     I::Item: IntoIterator,
     <<I as IntoIterator>::Item as IntoIterator>::Item: Ord,
 {
-    let mut vector_of_iterators = Vec::new(); //FIXME: try not to push for the sake of time.
+    let mut vector_of_iterators = Vec::new();
     let mut heads = Vec::new();
-    for inner_iter in iterable.into_iter() {
-        let mut temp_iter = inner_iter.into_iter();
-        let mut option_item = temp_iter.next();
+    for inner_iterable in iterable.into_iter() {
+        let mut inner_iterator = inner_iterable.into_iter();
+        let mut option_item = inner_iterator.next();
         if let Some(actual_item) = option_item {
-            vector_of_iterators.push(temp_iter);
+            vector_of_iterators.push(inner_iterator);
             heads.push(actual_item);
-        } else {
-            continue;
         }
     }
     Merged {
@@ -53,12 +51,13 @@ where
 {
     type Item = I::Item;
     fn next(&mut self) -> Option<Self::Item> {
-        let possible_advancing_iterator = self
-            .heads
-            .iter()
-            .enumerate()
-            .min_by_key(|(_, e)| *e)
-            .map(|(index, _)| index);
+        let possible_advancing_iterator = (0..self.heads.len()).min_by_key(|i| &self.heads[*i]);
+        //let possible_advancing_iterator = self
+        //    .heads
+        //    .iter()
+        //    .enumerate()
+        //    .min_by_key(|(_, e)| *e)
+        //    .map(|(index, _)| index);
         if let Some(advancing_iterator) = possible_advancing_iterator {
             let next_head = self.original_iterators[advancing_iterator].next();
             if let Some(next_item) = next_head {
