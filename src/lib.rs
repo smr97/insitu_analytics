@@ -1,8 +1,8 @@
-#[macro_use]
 extern crate grouille;
 extern crate itertools;
 extern crate rand;
 extern crate rayon;
+extern crate rayon_logs;
 pub mod clique;
 pub mod mymerge;
 pub mod parallel_rayon;

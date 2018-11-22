@@ -2,7 +2,8 @@ use clique::update_side;
 use grouille::Point;
 use itertools::repeat_call;
 //use rand::random;
-use rayon::prelude::*;
+//use rayon::prelude::*;
+use rayon_logs::prelude::*;
 use sequential_algorithm::*;
 use std::cell::UnsafeCell;
 use std::collections::HashMap;
@@ -73,7 +74,7 @@ impl Graph {
                     inner_points.extend(
                         smaller_squares.into_iter().map(|(_, value)| value), //.cloned()
                     );
-                    for point in &relevant_points {
+                    relevant_points.par_iter().for_each(|point| {
                         unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
                             relevant_points
                                 .iter()
@@ -83,9 +84,9 @@ impl Graph {
                                             <= threshold_distance
                                 }).cloned(),
                         );
-                    }
+                    })
                 } else {
-                    for point in square {
+                    square.into_par_iter().for_each(|point| {
                         unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
                             square
                                 .iter()
@@ -95,7 +96,7 @@ impl Graph {
                                             <= threshold_distance
                                 }).cloned(),
                         );
-                    }
+                    });
                 }
                 inner_points
             }).reduce(
