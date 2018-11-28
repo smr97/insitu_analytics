@@ -13,9 +13,8 @@ rayon="*"
 rayon_adaptive={path="../rayon-adaptive"}
 itertools="*"
 rand="*"
-rayon_logs={path="../rayon-logs"}
+rayon_logs={ path="../rayon-logs"}
 thread_binder={path="../thread_binder"}
-
 [[bench]]
 name ="insitu_analytics"
 path = "benches/insitu_analytics.rs"

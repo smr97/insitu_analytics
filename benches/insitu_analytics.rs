@@ -6,64 +6,12 @@ extern crate itertools;
 extern crate rand;
 extern crate rayon;
 extern crate thread_binder;
-use analytics::sequential_algorithm::*;
+use analytics::wrapper_functions::*;
 use criterion::Criterion;
-use grouille::Point;
-use itertools::repeat_call;
-use rand::random;
-use rayon::prelude::*;
 use thread_binder::*;
-const NUM_POINTS: usize = 150_000;
-const NUM_THREADS: usize = 2;
 const THRESHOLD_DISTANCE: f64 = 0.01;
-
-fn wrapper_sequential(points: &[Point]) {
-    let squares = hash_points(points, THRESHOLD_DISTANCE);
-    let graphs: Vec<Graph> = squares
-        .iter()
-        .zip(
-            [
-                (0.0, 0.0),
-                (THRESHOLD_DISTANCE, 0.0),
-                (0.0, THRESHOLD_DISTANCE),
-                (THRESHOLD_DISTANCE, THRESHOLD_DISTANCE),
-            ]
-                .into_iter(),
-        ) // TODO: fixme
-        .map(|(square, hashing_offsets)| {
-            Graph::new(&square, points, THRESHOLD_DISTANCE, *hashing_offsets)
-        }).collect();
-    let final_graph = fuse_graphs(graphs, points.len());
-    let connected_components = final_graph.compute_connected_components();
-    assert!(connected_components.len() > 0);
-}
-
-fn wrapper_parallel(points: &[Point]) {
-    let squares = hash_points(points, THRESHOLD_DISTANCE);
-    let hashing_offsets = vec![
-        (0.0, 0.0),
-        (THRESHOLD_DISTANCE, 0.0),
-        (0.0, THRESHOLD_DISTANCE),
-        (THRESHOLD_DISTANCE, THRESHOLD_DISTANCE),
-    ];
-
-    let graphs: Vec<Graph> = squares
-        .par_iter()
-        .zip(hashing_offsets.par_iter())
-        .map(|(square, hashing_offset)| {
-            Graph::parallel_new(&square, points, THRESHOLD_DISTANCE, *hashing_offset)
-        }).collect();
-    let final_graph = fuse_graphs(graphs, points.len());
-    let connected_components = final_graph.compute_connected_components();
-    assert!(connected_components.len() > 0);
-}
-
-fn get_random_points() -> Vec<Point> {
-    repeat_call(|| Point::new(random(), random()))
-        .take(NUM_POINTS)
-        .collect()
-}
-
+const NUM_POINTS: usize = 100_000;
+const NUM_THREADS: usize = 2;
 fn analytics_bench(c: &mut Criterion) {
     BindableThreadPool::new(POLICY::ROUND_ROBIN_CORE)
         .num_threads(NUM_THREADS)
@@ -73,9 +21,9 @@ fn analytics_bench(c: &mut Criterion) {
         &format!("sequential analytics (size={})", NUM_POINTS),
         |b| {
             b.iter_with_setup(
-                || get_random_points(),
+                || get_random_points(NUM_POINTS),
                 |testin| {
-                    wrapper_sequential(&testin);
+                    wrapper_sequential(&testin, THRESHOLD_DISTANCE);
                     testin
                 },
             )
@@ -85,9 +33,21 @@ fn analytics_bench(c: &mut Criterion) {
         &format!("rayon parallel analytics (size={})", NUM_POINTS),
         |b| {
             b.iter_with_setup(
-                || get_random_points(),
+                || get_random_points(NUM_POINTS),
                 |testin| {
-                    wrapper_parallel(&testin);
+                    wrapper_parallel(&testin, THRESHOLD_DISTANCE);
+                    testin
+                },
+            )
+        },
+    );
+    c.bench_function(
+        &format!("sequential analytics (size={})", NUM_POINTS),
+        |b| {
+            b.iter_with_setup(
+                || get_random_points(NUM_POINTS),
+                |testin| {
+                    wrapper_parallel_opt(&testin, THRESHOLD_DISTANCE);
                     testin
                 },
             )
