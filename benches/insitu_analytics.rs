@@ -5,13 +5,16 @@ extern crate grouille;
 extern crate itertools;
 extern crate rand;
 extern crate rayon;
+extern crate thread_binder;
 use analytics::sequential_algorithm::*;
 use criterion::Criterion;
 use grouille::Point;
 use itertools::repeat_call;
 use rand::random;
 use rayon::prelude::*;
+use thread_binder::*;
 const NUM_POINTS: usize = 150_000;
+const NUM_THREADS: usize = 2;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 
 fn wrapper_sequential(points: &[Point]) {
@@ -62,6 +65,10 @@ fn get_random_points() -> Vec<Point> {
 }
 
 fn analytics_bench(c: &mut Criterion) {
+    BindableThreadPool::new(POLICY::ROUND_ROBIN_CORE)
+        .num_threads(NUM_THREADS)
+        .build_global()
+        .expect("Bindable thread pool failed");
     c.bench_function(
         &format!("sequential analytics (size={})", NUM_POINTS),
         |b| {
