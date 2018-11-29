@@ -34,7 +34,6 @@ impl Graph {
             .adaptive_fold(
                 || Vec::new(),
                 |mut inner_points, (square_coordinate, square)| {
-                    //let mut inner_points: LinkedList<Vec<usize>> = LinkedList::new();
                     if square.len() > SWITCH_THRESHOLD {
                         let mut smaller_squares = hash_internal(
                             square.iter().map(|index| (*index, points[*index])),

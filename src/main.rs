@@ -2,7 +2,7 @@ extern crate grouille;
 extern crate itertools;
 extern crate rand;
 extern crate rayon;
-extern crate rayon_logs;
+//extern crate rayon_logs;
 extern crate thread_binder;
 extern crate time;
 pub mod clique;
