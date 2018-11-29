@@ -10,7 +10,6 @@ use sequential_algorithm::*;
 use std::cell::UnsafeCell;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::collections::LinkedList;
 const PREALLOCATION_FACTOR: usize = 100;
 const SWITCH_THRESHOLD: usize = 500;
 
@@ -19,7 +18,7 @@ unsafe impl Sync for SharedGraph {}
 
 impl Graph {
     pub fn adaptive_parallel_new(
-        grid: HashMap<(usize, usize), Vec<usize>>,
+        grid: &HashMap<(usize, usize), Vec<usize>>,
         points: &[Point],
         threshold_distance: f64,
         hashing_offsets: (f64, f64),
@@ -29,11 +28,12 @@ impl Graph {
                 .take(points.len())
                 .collect();
         let final_graph_cell = SharedGraph(UnsafeCell::new(final_graph));
-        let inner_points: Vec<Vec<usize>> = grid
-            .into_par_iter()
+        let hashmap_vector: Vec<_> = grid.into_iter().collect();
+        let cliques: Vec<Vec<usize>> = hashmap_vector
+            .par_iter()
             .adaptive_fold(
                 || Vec::new(),
-                |fold_vector, (square_coordinate, square)| {
+                |mut inner_points, (square_coordinate, square)| {
                     //let mut inner_points: LinkedList<Vec<usize>> = LinkedList::new();
                     if square.len() > SWITCH_THRESHOLD {
                         let mut smaller_squares = hash_internal(
@@ -99,16 +99,14 @@ impl Graph {
                     }
                     inner_points
                 },
-            ).reduce(
-                || LinkedList::new(),
-                move |mut l1, mut l2| {
-                    l1.append(&mut l2);
-                    l1
-                },
-            );
+            ).into_iter()
+            .fold(Vec::new(), |mut final_vector, some_vector| {
+                final_vector.extend(some_vector);
+                final_vector
+            });
         Graph {
             relevant_points: final_graph_cell.0.into_inner(),
-            cliques: inner_points.into_iter().collect(),
+            cliques: cliques,
         }
     }
 }

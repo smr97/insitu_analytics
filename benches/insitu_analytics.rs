@@ -42,12 +42,27 @@ fn analytics_bench(c: &mut Criterion) {
         },
     );
     c.bench_function(
-        &format!("sequential analytics (size={})", NUM_POINTS),
+        &format!(
+            "rayon parallel analytics with optimal fold(size={})",
+            NUM_POINTS
+        ),
         |b| {
             b.iter_with_setup(
                 || get_random_points(NUM_POINTS),
                 |testin| {
                     wrapper_parallel_opt(&testin, THRESHOLD_DISTANCE);
+                    testin
+                },
+            )
+        },
+    );
+    c.bench_function(
+        &format!("adaptive parallel analytics (size={})", NUM_POINTS),
+        |b| {
+            b.iter_with_setup(
+                || get_random_points(NUM_POINTS),
+                |testin| {
+                    wrapper_parallel_adaptive(&testin, THRESHOLD_DISTANCE);
                     testin
                 },
             )
