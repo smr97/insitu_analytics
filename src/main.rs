@@ -20,7 +20,7 @@ use wrapper_functions::*;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
 const NUM_THREADS: usize = 2;
-const RUNS_NUMBER: usize = 15;
+const RUNS_NUMBER: usize = 4;
 fn main() {
     #[cfg(feature = "logs")]
     {
@@ -50,7 +50,7 @@ fn main() {
             .build_global()
             .expect("Pool creation failed");
         (0..RUNS_NUMBER).for_each(|_| {
-            let input = get_random_points(NUM_POINTS);
+            let input = get_random_points(NUM_POINTS + RUNS_NUMBER * 100_000);
             let sequential_time_st = precise_time_ns();
             wrapper_sequential(&input, THRESHOLD_DISTANCE);
             let sequential_time_end = precise_time_ns();
