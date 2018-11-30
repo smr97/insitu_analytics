@@ -45,12 +45,13 @@ fn main() {
     }
     #[cfg(not(feature = "logs"))]
     {
-        BindableThreadPool::new(POLICY::ROUND_ROBIN_CORE)
-            .num_threads(NUM_THREADS)
-            .build_global()
+	(2..15).for_each(|thread_num|{
+        let pool = BindableThreadPool::new(POLICY::ROUND_ROBIN_CORE)
+            .num_threads(thread_num)
+            .build()
             .expect("Pool creation failed");
-        (0..RUNS_NUMBER).for_each(|_| {
-            let input = get_random_points(NUM_POINTS + RUNS_NUMBER * 100_000);
+        pool.install(||(0..RUNS_NUMBER).for_each(|run| {
+            let input = get_random_points(NUM_POINTS + run * 100_000);
             let sequential_time_st = precise_time_ns();
             wrapper_sequential(&input, THRESHOLD_DISTANCE);
             let sequential_time_end = precise_time_ns();
@@ -66,7 +67,7 @@ fn main() {
             let parallel_time_end = precise_time_ns();
             println!(
                 "RAYON PARALLEL OPT, {}, {}",
-                NUM_THREADS,
+                thread_num,
                 parallel_time_end - parallel_time_st
             );
 
@@ -76,9 +77,9 @@ fn main() {
             let adaptive_time_end = precise_time_ns();
             println!(
                 "ADAPTIVE PARALLEL OPT, {}, {}",
-                NUM_THREADS,
+                thread_num,
                 adaptive_time_end - adaptive_time_st
             );
-        });
+        }));});
     }
 }
