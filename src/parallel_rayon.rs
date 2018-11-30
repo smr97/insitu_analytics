@@ -1,9 +1,12 @@
-//extern crate rayon_logs;
+#[cfg(feature = "logs")]
+extern crate rayon_logs;
 use clique::update_side;
 use grouille::Point;
 use itertools::repeat_call;
+#[cfg(feature = "logs")]
+use parallel_rayon::rayon_logs::prelude::*;
+#[cfg(not(feature = "logs"))]
 use rayon::prelude::*;
-//use parallel_rayon::rayon_logs::prelude::*;
 use sequential_algorithm::*;
 use std::cell::UnsafeCell;
 use std::collections::HashMap;

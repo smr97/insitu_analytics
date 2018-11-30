@@ -4,8 +4,8 @@ use clique::update_side;
 use grouille::Point;
 use itertools::repeat_call;
 //use rayon::prelude::*;
-use parallel_adaptive::rayon::prelude::*;
 use parallel_adaptive::rayon_adaptive::*;
+use rayon::prelude::*;
 use sequential_algorithm::*;
 use std::cell::UnsafeCell;
 use std::collections::HashMap;
@@ -71,17 +71,29 @@ impl Graph {
                         inner_points.extend(
                             smaller_squares.into_iter().map(|(_, value)| value), //.cloned()
                         );
-                        relevant_points.par_iter().for_each(|point| {
-                            unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
-                                relevant_points
-                                    .iter()
-                                    .filter(|&p| {
-                                        *p != *point
-                                            && points[*point].distance_to(&points[*p])
-                                                <= threshold_distance
-                                    }).cloned(),
-                            );
-                        })
+                        let mut relevant_points_clone =
+                            relevant_points.iter().cloned().collect::<Vec<usize>>();
+                        let relevant_points_slice = EdibleSliceMut::new(&mut relevant_points_clone);
+                        relevant_points_slice.for_each(
+                            |points_slice, limit| {
+                                //TODO make this adaptive
+                                let (mut work_slice, return_slice) = points_slice.split_at(limit);
+                                work_slice.remaining_slice().into_iter().for_each(|point| {
+                                    unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point]
+                                        .extend(
+                                            relevant_points
+                                                .iter()
+                                                .filter(|&p| {
+                                                    *p != *point
+                                                        && points[*point].distance_to(&points[*p])
+                                                            <= threshold_distance
+                                                }).cloned(),
+                                        );
+                                });
+                                return_slice
+                            },
+                            Policy::Adaptive(1000),
+                        )
                     } else {
                         square.into_par_iter().for_each(|point| {
                             unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(

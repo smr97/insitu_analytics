@@ -6,16 +6,22 @@ authors = ["Saurabh Raje <saurabh.mraje@gmail.com>"]
 debug = true
 [dev-dependencies]
 criterion="*"
+[features]
+logs = ["rayon_logs"]
 [dependencies]
 time = "*"
 grouille={path="../grouille"}
 rayon="*"
-rayon_adaptive={path="../rayon-adaptive"}
+#rayon_adaptive={path="../rayon-adaptive"}
 itertools="*"
 rand="*"
-rayon_logs={ path="../rayon-logs"}
+rayon_logs={optional=true, path="../rayon-logs"}
 thread_binder={path="../thread_binder"}
 [[bench]]
 name ="insitu_analytics"
 path = "benches/insitu_analytics.rs"
 harness = false
+[dependencies.rayon_adaptive]
+path = "../rayon-adaptive"
+default-features = false
+features = ["logs"]
