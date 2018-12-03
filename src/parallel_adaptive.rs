@@ -95,6 +95,7 @@ impl Graph {
                             Policy::Adaptive(1000),
                         )
                     } else {
+                        //TODO make this adaptive.
                         square.into_par_iter().for_each(|point| {
                             unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
                                 square

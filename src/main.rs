@@ -45,41 +45,46 @@ fn main() {
     }
     #[cfg(not(feature = "logs"))]
     {
-	(2..15).for_each(|thread_num|{
-        let pool = BindableThreadPool::new(POLICY::ROUND_ROBIN_CORE)
-            .num_threads(thread_num)
-            .build()
-            .expect("Pool creation failed");
-        pool.install(||(0..RUNS_NUMBER).for_each(|run| {
-            let input = get_random_points(NUM_POINTS + run * 100_000);
-            let sequential_time_st = precise_time_ns();
-            wrapper_sequential(&input, THRESHOLD_DISTANCE);
-            let sequential_time_end = precise_time_ns();
-            println!(
-                "SEQUENTIAL, {}, {}",
-                1,
-                sequential_time_end - sequential_time_st
-            );
+        (2..15).for_each(|thread_num| {
+            let pool = BindableThreadPool::new(POLICY::ROUND_ROBIN_CORE)
+                .num_threads(thread_num)
+                .build()
+                .expect("Pool creation failed");
+            pool.install(|| {
+                (0..RUNS_NUMBER).for_each(|run| {
+                    let number_of_points = NUM_POINTS + run * 100_000;
+                    let input = get_random_points(number_of_points);
+                    let sequential_time_st = precise_time_ns();
+                    wrapper_sequential(&input, THRESHOLD_DISTANCE);
+                    let sequential_time_end = precise_time_ns();
+                    println!(
+                        "SEQUENTIAL, {}, {}",
+                        1,
+                        sequential_time_end - sequential_time_st
+                    );
 
-            let input = get_random_points(NUM_POINTS);
-            let parallel_time_st = precise_time_ns();
-            wrapper_parallel_opt(&input, THRESHOLD_DISTANCE);
-            let parallel_time_end = precise_time_ns();
-            println!(
-                "RAYON PARALLEL OPT, {}, {}",
-                thread_num,
-                parallel_time_end - parallel_time_st
-            );
+                    let input = get_random_points(number_of_points);
+                    let parallel_time_st = precise_time_ns();
+                    wrapper_parallel(&input, THRESHOLD_DISTANCE);
+                    let parallel_time_end = precise_time_ns();
+                    println!(
+                        "RAYON PARALLEL, {}, {}",
+                        thread_num,
+                        parallel_time_end - parallel_time_st
+                    );
 
-            let input = get_random_points(NUM_POINTS);
-            let adaptive_time_st = precise_time_ns();
-            wrapper_parallel_adaptive(&input, THRESHOLD_DISTANCE);
-            let adaptive_time_end = precise_time_ns();
-            println!(
-                "ADAPTIVE PARALLEL OPT, {}, {}",
-                thread_num,
-                adaptive_time_end - adaptive_time_st
-            );
-        }));});
+                    let input = get_random_points(number_of_points);
+                    let adaptive_time_st = precise_time_ns();
+                    wrapper_parallel_adaptive(&input, THRESHOLD_DISTANCE);
+                    let adaptive_time_end = precise_time_ns();
+                    println!(
+                        "ADAPTIVE PARALLEL OPT, {}, {}, {}",
+                        thread_num,
+                        adaptive_time_end - adaptive_time_st,
+                        number_of_points
+                    );
+                })
+            });
+        });
     }
 }
