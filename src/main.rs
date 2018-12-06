@@ -19,7 +19,7 @@ use time::precise_time_ns;
 use wrapper_functions::*;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
-//const NUM_THREADS: usize = 2;
+const NUM_THREADS: usize = 14;
 const RUNS_NUMBER: usize = 5;
 fn main() {
     #[cfg(feature = "logs")]

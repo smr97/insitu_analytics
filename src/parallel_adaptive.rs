@@ -96,18 +96,40 @@ impl Graph {
                         )
                     } else {
                         //TODO make this adaptive.
-                        square.into_par_iter().for_each(|point| {
-                            unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
-                                square
-                                    .iter()
-                                    .filter(|&p| {
-                                        p != point
-                                            && points[*point as usize]
-                                                .distance_to(&points[*p as usize])
-                                                <= threshold_distance
-                                    }).cloned(),
-                            );
-                        });
+                        #[cfg(not(features = "logs"))]
+                        {
+                            square.into_par_iter().for_each(|point| {
+                                unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point]
+                                    .extend(
+                                        square
+                                            .iter()
+                                            .filter(|&p| {
+                                                p != point
+                                                    && points[*point as usize]
+                                                        .distance_to(&points[*p as usize])
+                                                        <= threshold_distance
+                                            }).cloned(),
+                                    );
+                            });
+                        }
+                        #[cfg(features = "logs")]
+                        {
+                            extern crate rayon_logs;
+                            use rayon_logs::Logged;
+                            Logged::new(square.into_par_iter()).for_each(|point| {
+                                unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point]
+                                    .extend(
+                                        square
+                                            .iter()
+                                            .filter(|&p| {
+                                                p != point
+                                                    && points[*point as usize]
+                                                        .distance_to(&points[*p as usize])
+                                                        <= threshold_distance
+                                            }).cloned(),
+                                    );
+                            });
+                        }
                     }
                     inner_points
                 },
