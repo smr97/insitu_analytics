@@ -1,17 +1,10 @@
-#[cfg(feature = "logs")]
-extern crate rayon_logs;
-use clique::update_side;
+use crate::clique::update_side;
+use crate::sequential_algorithm::{hash_internal, Graph};
 use grouille::Point;
 use itertools::repeat_call;
-#[cfg(feature = "logs")]
-use parallel_rayon::rayon_logs::prelude::*;
-#[cfg(not(feature = "logs"))]
 use rayon::prelude::*;
-use sequential_algorithm::*;
 use std::cell::UnsafeCell;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::collections::LinkedList;
+use std::collections::{HashMap, HashSet, LinkedList};
 const PREALLOCATION_FACTOR: usize = 100;
 const SWITCH_THRESHOLD: usize = 500;
 
@@ -19,7 +12,7 @@ struct SharedGraph(UnsafeCell<Vec<Vec<usize>>>);
 unsafe impl Sync for SharedGraph {}
 
 impl Graph {
-    pub fn parallel_new(
+    pub(crate) fn parallel_new(
         grid: &HashMap<(usize, usize), Vec<usize>>,
         points: &[Point],
         threshold_distance: f64,
@@ -79,7 +72,8 @@ impl Graph {
                                     *p != *point
                                         && points[*point].distance_to(&points[*p])
                                             <= threshold_distance
-                                }).cloned(),
+                                })
+                                .cloned(),
                         );
                     })
                 } else {
@@ -91,12 +85,14 @@ impl Graph {
                                     p != point
                                         && points[*point as usize].distance_to(&points[*p as usize])
                                             <= threshold_distance
-                                }).cloned(),
+                                })
+                                .cloned(),
                         );
                     });
                 }
                 inner_points
-            }).reduce(
+            })
+            .reduce(
                 || LinkedList::new(),
                 move |mut l1, mut l2| {
                     l1.append(&mut l2);
@@ -109,7 +105,7 @@ impl Graph {
         }
     }
 
-    pub fn parallel_new_opt(
+    pub(crate) fn parallel_new_opt(
         grid: &HashMap<(usize, usize), Vec<usize>>,
         points: &[Point],
         threshold_distance: f64,
@@ -125,7 +121,6 @@ impl Graph {
             .fold(
                 || Vec::new(),
                 |mut inner_points, (square_coordinate, square)| {
-                    //let mut inner_points: LinkedList<Vec<usize>> = LinkedList::new();
                     if square.len() > SWITCH_THRESHOLD {
                         let mut smaller_squares = hash_internal(
                             square.iter().map(|index| (*index, points[*index])),
@@ -171,7 +166,8 @@ impl Graph {
                                         *p != *point
                                             && points[*point].distance_to(&points[*p])
                                                 <= threshold_distance
-                                    }).cloned(),
+                                    })
+                                    .cloned(),
                             );
                         })
                     } else {
@@ -184,23 +180,27 @@ impl Graph {
                                             && points[*point as usize]
                                                 .distance_to(&points[*p as usize])
                                                 <= threshold_distance
-                                    }).cloned(),
+                                    })
+                                    .cloned(),
                             );
                         });
                     }
                     inner_points
                 },
-            ).map(|some_vec| {
+            )
+            .map(|some_vec| {
                 let mut list = LinkedList::new();
                 list.push_back(some_vec);
                 list
-            }).reduce(
+            })
+            .reduce(
                 || LinkedList::new(),
                 move |mut l1, mut l2| {
                     l1.append(&mut l2);
                     l1
                 },
-            ).into_iter()
+            )
+            .into_iter()
             .fold(Vec::new(), |mut final_vec, list_elem| {
                 final_vec.extend(list_elem);
                 final_vec

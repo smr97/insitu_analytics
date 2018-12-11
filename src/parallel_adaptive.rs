@@ -1,15 +1,10 @@
-extern crate rayon;
-extern crate rayon_adaptive;
-use clique::update_side;
+use crate::clique::update_side;
+use crate::sequential_algorithm::{hash_internal, Graph};
 use grouille::Point;
 use itertools::repeat_call;
-//use rayon::prelude::*;
-use parallel_adaptive::rayon_adaptive::*;
-use rayon::prelude::*;
-use sequential_algorithm::*;
+use rayon_adaptive::prelude::*;
 use std::cell::UnsafeCell;
-use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 const PREALLOCATION_FACTOR: usize = 100;
 const SWITCH_THRESHOLD: usize = 500;
 
@@ -17,7 +12,7 @@ struct SharedGraph(UnsafeCell<Vec<Vec<usize>>>);
 unsafe impl Sync for SharedGraph {}
 
 impl Graph {
-    pub fn adaptive_parallel_new(
+    pub(crate) fn adaptive_parallel_new(
         grid: &HashMap<(usize, usize), Vec<usize>>,
         points: &[Point],
         threshold_distance: f64,
@@ -29,9 +24,11 @@ impl Graph {
                 .collect();
         let final_graph_cell = SharedGraph(UnsafeCell::new(final_graph));
         let hashmap_vector: Vec<_> = grid.into_iter().collect();
+        //TODO [ASK] why don't we have iter on (K, V) in hashmap? I don't want to do a sequential
+        //collect....
         let cliques: Vec<Vec<usize>> = hashmap_vector
-            .par_iter()
-            .adaptive_fold(
+            .into_adapt_iter()
+            .fold(
                 || Vec::new(),
                 |mut inner_points, (square_coordinate, square)| {
                     if square.len() > SWITCH_THRESHOLD {
@@ -71,69 +68,41 @@ impl Graph {
                         inner_points.extend(
                             smaller_squares.into_iter().map(|(_, value)| value), //.cloned()
                         );
-                        let mut relevant_points_clone =
+                        //TODO [ASK] Again, what do we do for this hashset?
+                        let relevant_points_clone =
                             relevant_points.iter().cloned().collect::<Vec<usize>>();
-                        let relevant_points_slice = EdibleSliceMut::new(&mut relevant_points_clone);
-                        relevant_points_slice.for_each(
-                            |points_slice, limit| {
-                                //TODO make this adaptive
-                                let (mut work_slice, return_slice) = points_slice.split_at(limit);
-                                work_slice.remaining_slice().into_iter().for_each(|point| {
-                                    unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point]
-                                        .extend(
-                                            relevant_points
-                                                .iter()
-                                                .filter(|&p| {
-                                                    *p != *point
-                                                        && points[*point].distance_to(&points[*p])
-                                                            <= threshold_distance
-                                                }).cloned(),
-                                        );
-                                });
-                                return_slice
-                            },
-                            Policy::Adaptive(1000),
-                        )
+                        relevant_points_clone.into_adapt_iter().for_each(|point| {
+                            unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
+                                relevant_points
+                                    .iter()
+                                    .filter(|&p| {
+                                        *p != *point
+                                            && points[*point].distance_to(&points[*p])
+                                                <= threshold_distance
+                                    })
+                                    .cloned(),
+                            );
+                        });
                     } else {
                         //TODO make this adaptive.
-                        #[cfg(not(features = "logs"))]
-                        {
-                            square.into_par_iter().for_each(|point| {
-                                unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point]
-                                    .extend(
-                                        square
-                                            .iter()
-                                            .filter(|&p| {
-                                                p != point
-                                                    && points[*point as usize]
-                                                        .distance_to(&points[*p as usize])
-                                                        <= threshold_distance
-                                            }).cloned(),
-                                    );
-                            });
-                        }
-                        #[cfg(features = "logs")]
-                        {
-                            extern crate rayon_logs;
-                            use rayon_logs::Logged;
-                            Logged::new(square.into_par_iter()).for_each(|point| {
-                                unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point]
-                                    .extend(
-                                        square
-                                            .iter()
-                                            .filter(|&p| {
-                                                p != point
-                                                    && points[*point as usize]
-                                                        .distance_to(&points[*p as usize])
-                                                        <= threshold_distance
-                                            }).cloned(),
-                                    );
-                            });
-                        }
+                        square.into_adapt_iter().for_each(|point| {
+                            unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
+                                square
+                                    .iter()
+                                    .filter(|&p| {
+                                        p != point
+                                            && points[*point as usize]
+                                                .distance_to(&points[*p as usize])
+                                                <= threshold_distance
+                                    })
+                                    .cloned(),
+                            );
+                        });
                     }
                     inner_points
                 },
-            ).into_iter()
+            )
+            .into_iter()
             .fold(Vec::new(), |mut final_vector, some_vector| {
                 final_vector.extend(some_vector);
                 final_vector
@@ -142,5 +111,9 @@ impl Graph {
             relevant_points: final_graph_cell.0.into_inner(),
             cliques: cliques,
         }
+        //Graph {
+        //    relevant_points: Vec::new(),
+        //    cliques: Vec::new(),
+        //}
     }
 }

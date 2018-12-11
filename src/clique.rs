@@ -17,7 +17,7 @@ fn update_side_one_pass<'a, I: Iterator<Item = &'a PointIndex>, F: Fn(&PointInde
     }
 }
 
-pub fn update_side<X, Y>(
+pub(crate) fn update_side<X, Y>(
     edge_points: &mut HashSet<PointIndex>,
     indices: &mut [PointIndex],
     score_x: X,

@@ -1,27 +1,23 @@
 [package]
 name = "analytics"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Saurabh Raje <saurabh.mraje@gmail.com>"]
+edition = "2018"
 [profile.release]
 debug = true
 [dev-dependencies]
 criterion="*"
-[features]
-logs = ["rayon_logs"]
 [dependencies]
+rayon_logs = {optional = true, path="../rayon-logs"}
 time = "*"
 grouille={path="../grouille"}
 rayon="*"
-#rayon_adaptive={path="../rayon-adaptive"}
 itertools="*"
 rand="*"
-rayon_logs={optional=true, path="../rayon-logs"}
 thread_binder={path="../thread_binder"}
-[[bench]]
-name ="insitu_analytics"
-path = "benches/insitu_analytics.rs"
-harness = false
-[dependencies.rayon_adaptive]
-path = "../rayon-adaptive"
-default-features = false
-features = ["logs"]
+[target.'cfg(feature = "rayonlogs")'.dependencies]
+rayon_adaptive={path="../rayon-adaptive", default-features = false, features = ["logs"]}
+[target.'cfg(not(feature = "rayonlogs"))'.dependencies]
+rayon_adaptive={path="../rayon-adaptive"}
+[features]
+rayonlogs = ["rayon_logs"]

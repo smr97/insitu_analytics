@@ -1,82 +1,14 @@
-use clique::update_side;
+use crate::clique::update_side;
 use grouille::Point;
-use itertools::repeat_call;
-use itertools::Itertools;
-//use mymerge::*;
-use std::collections::HashMap;
-use std::collections::HashSet;
+use itertools::{repeat_call, Itertools};
+use std::collections::{HashMap, HashSet};
 const PREALLOCATION_FACTOR: usize = 100;
 const SWITCH_THRESHOLD: usize = 500;
-//#[cfg(test)]
-//mod tests {
-//    use super::*;
-//
-//    #[test]
-//    fn check_hashing() {
-//        const THRESHOLD_DISTANCE: f64 = 0.0032;
-//        (0..100).for_each(|_| {
-//            let points: Vec<_> = repeat_call(|| Point::new(random(), random()))
-//                .take(200)
-//                .collect();
-//            let squares = hash_points(&points, THRESHOLD_DISTANCE);
-//            let graphs: Vec<Graph> = squares
-//                .iter()
-//                .map(|square| Graph::new(&square, &points, THRESHOLD_DISTANCE))
-//                .collect();
-//            let final_graph = fuse_graphs(graphs, points.len());
-//            points
-//                .iter()
-//                .enumerate()
-//                .cartesian_product(points.iter().enumerate())
-//                .filter(
-//                    |((source_index, source), (destination_index, destination))| {
-//                        source.distance_to(&destination) <= THRESHOLD_DISTANCE
-//                            && source_index != destination_index
-//                    },
-//                ).for_each(
-//                    |((source_index, source), (destination_index, destination))| {
-//                        assert!(
-//                            match final_graph[source_index]
-//                                .iter()
-//                                .position(|some_point| *some_point == destination_index)
-//                            {
-//                                Some(num) => true,
-//                                None => false,
-//                            },
-//                            "points are {:?}, {:?}",
-//                            source,
-//                            destination
-//                        );
-//                    },
-//                );
-//        });
-//    }
-//}
-
 pub struct Graph {
     pub relevant_points: Vec<Vec<usize>>,
     pub cliques: Vec<Vec<usize>>,
 }
 impl Graph {
-    //pub fn display_graph(points: &[Point], graph: &[Vec<usize>]) {
-    //    let segments: Vec<Vec<Segment>> = graph
-    //        .iter()
-    //        .enumerate()
-    //        .map(|(point_index, neighbours_indices)| {
-    //            neighbours_indices
-    //                .iter()
-    //                .map(|neighbour_index| {
-    //                    Segment::new(points[point_index], points[*neighbour_index])
-    //                }).collect()
-    //        }).collect();
-    //    //colored_display(&segments).expect("displaying graph failed");
-    //    //for s in &segments {
-    //    if !segments.is_empty() {
-    //        tycat!(points, segments);
-    //    }
-    //    //}
-    //}
-
     pub fn new(
         grid: &HashMap<(usize, usize), Vec<usize>>,
         points: &[Point],
@@ -87,7 +19,6 @@ impl Graph {
             repeat_call(|| Vec::with_capacity(points.len() / PREALLOCATION_FACTOR))
                 .take(points.len())
                 .collect();
-        //println!("we have {} squares", grid.len());
         let mut inner_points: Vec<Vec<usize>> = Vec::new();
         for (square_coordinate, square) in grid {
             if square.len() > SWITCH_THRESHOLD {
@@ -127,16 +58,6 @@ impl Graph {
                 inner_points.extend(
                     smaller_squares.into_iter().map(|(_, value)| value), //.cloned()
                 );
-                //tycat!(
-                //    square
-                //        .iter()
-                //        .map(|index| points[*index])
-                //        .collect::<Vec<Point>>(),
-                //    relevant_points
-                //        .iter()
-                //        .map(|index| points[*index])
-                //        .collect::<Vec<Point>>()
-                //);
                 for point in &relevant_points {
                     final_graph[*point].extend(
                         relevant_points
@@ -144,7 +65,8 @@ impl Graph {
                             .filter(|&p| {
                                 *p != *point
                                     && points[*point].distance_to(&points[*p]) <= threshold_distance
-                            }).cloned(),
+                            })
+                            .cloned(),
                     );
                 }
             } else {
@@ -156,7 +78,8 @@ impl Graph {
                                 p != point
                                     && points[*point as usize].distance_to(&points[*p as usize])
                                         <= threshold_distance
-                            }).cloned(),
+                            })
+                            .cloned(),
                     );
                 }
             }
@@ -199,7 +122,8 @@ impl Graph {
                 } else {
                     None
                 }
-            }).collect::<Vec<Vec<usize>>>()
+            })
+            .collect::<Vec<Vec<usize>>>()
     }
 }
 

@@ -1,31 +1,29 @@
-extern crate grouille;
-extern crate itertools;
-extern crate rand;
-extern crate rayon;
-#[cfg(feature = "logs")]
-extern crate rayon_logs;
-extern crate thread_binder;
-extern crate time;
-pub mod clique;
-pub mod mymerge;
-pub mod parallel_adaptive;
-pub mod parallel_rayon;
-pub mod sequential_algorithm;
+mod clique;
+mod parallel_adaptive;
+mod parallel_rayon;
+mod sequential_algorithm;
 mod wrapper_functions;
-#[cfg(feature = "logs")]
+use self::wrapper_functions::*;
+use grouille::Point;
+use itertools::repeat_call;
+use rand::random;
+#[cfg(feature = "rayonlogs")]
 use rayon_logs::ThreadPoolBuilder;
-use thread_binder::*;
-use time::precise_time_ns;
-use wrapper_functions::*;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
 const NUM_THREADS: usize = 14;
 const RUNS_NUMBER: usize = 5;
+
+fn get_random_points(num_points: usize) -> Vec<Point> {
+    repeat_call(|| Point::new(random(), random()))
+        .take(num_points)
+        .collect()
+}
+
 fn main() {
-    #[cfg(feature = "logs")]
+    #[cfg(feature = "rayonlogs")]
     {
-        //println!("In features");
-        let pool = ThreadPoolBuilder::new()
+        let pool = rayon_logs::ThreadPoolBuilder::new()
             .num_threads(NUM_THREADS)
             .build()
             .expect("logging pool creation failed");
@@ -43,14 +41,12 @@ fn main() {
             .save_svg("parallel_adaptive.html")
             .expect("Failed");
     }
-    #[cfg(not(feature = "logs"))]
+    #[cfg(not(feature = "rayonlogs"))]
     {
         (0..RUNS_NUMBER).for_each(|run| {
             let number_of_points = NUM_POINTS + run * 100_000;
-            let input = get_random_points(number_of_points);
-            //let sequential_time_st = precise_time_ns();
+            let input: Vec<Point> = get_random_points(number_of_points);
             let sequential_time_seconds = wrapper_sequential(&input, THRESHOLD_DISTANCE);
-            //let sequential_time_end = precise_time_ns();
             println!(
                 "SEQUENTIAL, {}, {}, {}",
                 1, sequential_time_seconds, number_of_points
@@ -60,10 +56,11 @@ fn main() {
             if thread_num % 2 == 1 {
                 ()
             } else {
-                let pool = BindableThreadPool::new(POLICY::ROUND_ROBIN_CORE)
-                    .num_threads(thread_num)
-                    .build()
-                    .expect("Pool creation failed");
+                let pool =
+                    thread_binder::BindableThreadPool::new(thread_binder::POLICY::ROUND_ROBIN_CORE)
+                        .num_threads(thread_num)
+                        .build()
+                        .expect("Pool creation failed");
                 pool.install(|| {
                     (0..RUNS_NUMBER).for_each(|run| {
                         let number_of_points = NUM_POINTS + run * 100_000;
