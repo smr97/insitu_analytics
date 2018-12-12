@@ -2,6 +2,7 @@ use crate::clique::update_side;
 use crate::sequential_algorithm::{hash_internal, Graph};
 use grouille::Point;
 use itertools::repeat_call;
+use rayon_adaptive::par_iter;
 use rayon_adaptive::prelude::*;
 use std::cell::UnsafeCell;
 use std::collections::{HashMap, HashSet};
@@ -23,11 +24,7 @@ impl Graph {
                 .take(points.len())
                 .collect();
         let final_graph_cell = SharedGraph(UnsafeCell::new(final_graph));
-        let hashmap_vector: Vec<_> = grid.into_iter().collect();
-        //TODO [ASK] why don't we have iter on (K, V) in hashmap? I don't want to do a sequential
-        //collect....
-        let cliques: Vec<Vec<usize>> = hashmap_vector
-            .into_adapt_iter()
+        let cliques: Vec<Vec<usize>> = par_iter(grid)
             .fold(
                 || Vec::new(),
                 |mut inner_points, (square_coordinate, square)| {
