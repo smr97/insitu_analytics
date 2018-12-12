@@ -1,3 +1,4 @@
+#![type_length_limit = "2097152"]
 mod clique;
 mod parallel_adaptive;
 mod parallel_rayon;
