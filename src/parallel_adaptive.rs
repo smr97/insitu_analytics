@@ -2,8 +2,8 @@ use crate::clique::update_side;
 use crate::sequential_algorithm::{hash_internal, Graph};
 use grouille::Point;
 use itertools::repeat_call;
-use rayon_adaptive::par_iter;
 use rayon_adaptive::prelude::*;
+use rayon_adaptive::{par_elements, par_iter};
 use std::cell::UnsafeCell;
 use std::collections::{HashMap, HashSet};
 const PREALLOCATION_FACTOR: usize = 100;
@@ -65,10 +65,7 @@ impl Graph {
                         inner_points.extend(
                             smaller_squares.into_iter().map(|(_, value)| value), //.cloned()
                         );
-                        //TODO [ASK] Again, what do we do for this hashset?
-                        let relevant_points_clone =
-                            relevant_points.iter().cloned().collect::<Vec<usize>>();
-                        relevant_points_clone.into_adapt_iter().for_each(|point| {
+                        par_elements(&relevant_points).for_each(|point| {
                             unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
                                 relevant_points
                                     .iter()
@@ -81,7 +78,6 @@ impl Graph {
                             );
                         });
                     } else {
-                        //TODO make this adaptive.
                         square.into_adapt_iter().for_each(|point| {
                             unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
                                 square
