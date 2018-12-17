@@ -109,8 +109,8 @@ pub fn wrapper_parallel_opt(points: &[Point], threshold_distance: f64) -> f64 {
 
     #[cfg(feature = "rayon_logs")]
     {
-        use self::rayon_logs::Logged;
         use rayon::prelude::IndexedParallelIterator;
+        use rayon_logs::Logged;
         let st = precise_time_ns();
         let graphs: Vec<Graph> = Logged::new(
             rayon::prelude::IntoParallelRefIterator::par_iter(&squares).zip(
