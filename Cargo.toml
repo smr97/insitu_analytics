@@ -5,6 +5,7 @@ authors = ["Saurabh Raje <saurabh.mraje@gmail.com>"]
 edition = "2018"
 [profile.release]
 debug = true
+debuginfo = true
 [dev-dependencies]
 criterion="*"
 [dependencies]

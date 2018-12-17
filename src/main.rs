@@ -12,7 +12,7 @@ use rayon_logs::ThreadPoolBuilder;
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
-const NUM_THREADS: usize = 14;
+const NUM_THREADS: usize = 4;
 const RUNS_NUMBER: usize = 5;
 
 fn get_random_points(num_points: usize) -> Vec<Point> {
