@@ -1,6 +1,6 @@
 use crate::sequential_algorithm::*;
 use grouille::Point;
-#[cfg(not(features = "rayonlogs"))]
+#[cfg(not(features = "rayon_logs"))]
 use rayon::prelude::*;
 use rayon_adaptive::prelude::*;
 use time::precise_time_ns;
@@ -37,7 +37,7 @@ pub fn wrapper_parallel(points: &[Point], threshold_distance: f64) -> f64 {
         (0.0, threshold_distance),
         (threshold_distance, threshold_distance),
     ];
-    #[cfg(feature = "logs")]
+    #[cfg(feature = "rayon_logs")]
     {
         use rayon::prelude::IndexedParallelIterator;
         use rayon_logs::Logged;
@@ -57,7 +57,7 @@ pub fn wrapper_parallel(points: &[Point], threshold_distance: f64) -> f64 {
         assert!(connected_components.len() > 0);
         (end - st) as f64 / (1e6 as f64)
     }
-    #[cfg(not(feature = "logs"))]
+    #[cfg(not(feature = "rayon_logs"))]
     {
         let st = precise_time_ns();
         let graphs: Vec<Graph> = squares
@@ -107,7 +107,7 @@ pub fn wrapper_parallel_opt(points: &[Point], threshold_distance: f64) -> f64 {
         (threshold_distance, threshold_distance),
     ];
 
-    #[cfg(feature = "logs")]
+    #[cfg(feature = "rayon_logs")]
     {
         use self::rayon_logs::Logged;
         use rayon::prelude::IndexedParallelIterator;
@@ -127,7 +127,7 @@ pub fn wrapper_parallel_opt(points: &[Point], threshold_distance: f64) -> f64 {
         assert!(connected_components.len() > 0);
         (end - st) as f64 / (1e6 as f64)
     }
-    #[cfg(not(feature = "logs"))]
+    #[cfg(not(feature = "rayon_logs"))]
     {
         let st = precise_time_ns();
         let graphs: Vec<Graph> = squares

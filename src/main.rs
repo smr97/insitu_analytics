@@ -22,7 +22,7 @@ fn get_random_points(num_points: usize) -> Vec<Point> {
 }
 
 fn main() {
-    #[cfg(feature = "rayonlogs")]
+    #[cfg(feature = "rayon_logs")]
     {
         let pool = rayon_logs::ThreadPoolBuilder::new()
             .num_threads(NUM_THREADS)
@@ -42,7 +42,7 @@ fn main() {
             .save_svg("parallel_adaptive.html")
             .expect("Failed");
     }
-    #[cfg(not(feature = "rayonlogs"))]
+    #[cfg(not(feature = "rayon_logs"))]
     {
         (0..RUNS_NUMBER).for_each(|run| {
             let number_of_points = NUM_POINTS + run * 100_000;
