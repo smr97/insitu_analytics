@@ -1,7 +1,8 @@
 use crate::clique::update_side;
 use grouille::Point;
-use itertools::{repeat_call, Itertools};
+use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
+use std::iter::repeat_with;
 const PREALLOCATION_FACTOR: usize = 100;
 const SWITCH_THRESHOLD: usize = 500;
 pub struct Graph {
@@ -16,7 +17,7 @@ impl Graph {
         hashing_offsets: (f64, f64),
     ) -> Self {
         let mut final_graph: Vec<Vec<usize>> =
-            repeat_call(|| Vec::with_capacity(points.len() / PREALLOCATION_FACTOR))
+            repeat_with(|| Vec::with_capacity(points.len() / PREALLOCATION_FACTOR))
                 .take(points.len())
                 .collect();
         let mut inner_points: Vec<Vec<usize>> = Vec::new();
@@ -211,7 +212,7 @@ pub fn hash_points(
         }),
     ];
     let mut squares: Vec<HashMap<(usize, usize), Vec<usize>>> =
-        repeat_call(HashMap::new).take(4).collect();
+        repeat_with(HashMap::new).take(4).collect();
     for (index, point) in points.iter().enumerate() {
         for (map, hash_function) in squares.iter_mut().zip(hash_functions.iter()) {
             let key = hash_function(point);

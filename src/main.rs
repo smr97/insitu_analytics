@@ -6,17 +6,17 @@ mod sequential_algorithm;
 mod wrapper_functions;
 use self::wrapper_functions::*;
 use grouille::Point;
-use itertools::repeat_call;
 use rand::random;
 #[cfg(feature = "rayonlogs")]
 use rayon_logs::ThreadPoolBuilder;
+use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
 const NUM_THREADS: usize = 14;
 const RUNS_NUMBER: usize = 5;
 
 fn get_random_points(num_points: usize) -> Vec<Point> {
-    repeat_call(|| Point::new(random(), random()))
+    repeat_with(|| Point::new(random(), random()))
         .take(num_points)
         .collect()
 }

@@ -1,11 +1,11 @@
 use crate::clique::update_side;
 use crate::sequential_algorithm::{hash_internal, Graph};
 use grouille::Point;
-use itertools::repeat_call;
 use rayon_adaptive::prelude::*;
 use rayon_adaptive::{par_elements, par_iter};
 use std::cell::UnsafeCell;
 use std::collections::{HashMap, HashSet};
+use std::iter::repeat_with;
 const PREALLOCATION_FACTOR: usize = 100;
 const SWITCH_THRESHOLD: usize = 500;
 
@@ -20,7 +20,7 @@ impl Graph {
         hashing_offsets: (f64, f64),
     ) -> Self {
         let final_graph: Vec<Vec<usize>> =
-            repeat_call(|| Vec::with_capacity(points.len() / PREALLOCATION_FACTOR))
+            repeat_with(|| Vec::with_capacity(points.len() / PREALLOCATION_FACTOR))
                 .take(points.len())
                 .collect();
         let final_graph_cell = SharedGraph(UnsafeCell::new(final_graph));
