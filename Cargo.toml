@@ -16,7 +16,7 @@ rayon="*"
 itertools="*"
 rand="*"
 thread_binder={path="../thread_binder"}
-[target.'cfg(feature = "rayonlogs")'.dependencies]
+[target.'cfg(feature = "rayon_logs")'.dependencies]
 rayon_adaptive={path="../rayon-adaptive", default-features = false, features = ["logs"]}
-[target.'cfg(not(feature = "rayonlogs"))'.dependencies]
-rayon_adaptive={path="../rayon-adaptive"}
+[target.'cfg(not(feature = "rayon_logs"))'.dependencies]
+rayon_adaptive={path="../rayon-adaptive", default-features = false, features = ["logs"]}
