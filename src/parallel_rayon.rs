@@ -1,10 +1,7 @@
 use crate::clique::update_side;
 use crate::sequential_algorithm::{hash_internal, Graph};
 use grouille::Point;
-#[cfg(not(feature = "rayon_logs"))]
 use rayon::prelude::*;
-#[cfg(feature = "rayon_logs")]
-use rayon_logs::prelude::*;
 use std::cell::UnsafeCell;
 use std::collections::{HashMap, HashSet, LinkedList};
 use std::iter::repeat_with;

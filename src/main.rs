@@ -16,7 +16,7 @@ use rayon::prelude::*;
 #[cfg(feature = "rayon_logs")]
 use rayon_adaptive::prelude::*;
 #[cfg(feature = "rayon_logs")]
-use rayon_logs::{RunLog, Stats, ThreadPoolBuilder};
+use rayon_logs::{Logged, RunLog, Stats, ThreadPoolBuilder};
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
@@ -59,8 +59,8 @@ fn print_stats(run_log: RunLog, num_threads: usize) {
 fn main() {
     #[cfg(feature = "rayon_logs")]
     {
-        let thread_nums = vec![2];
-        let numbers_of_points = vec![200_000];
+        let thread_nums = vec![13];
+        let numbers_of_points = vec![200_000, 300_000];
         let thresholds = vec![0.01, 0.05, 0.1, 0.3, 0.5];
         for (num_threads, num_points, threshold_distance) in iproduct!(
             thread_nums.into_iter(),
@@ -104,18 +104,20 @@ fn main() {
             print_stats(run_log, num_threads);
             let run_log = pool
                 .install(|| {
-                    squares
-                        .par_iter()
-                        .zip(hashing_offsets.par_iter())
-                        .map(|(square, hashing_offset)| {
-                            Graph::parallel_new_opt(
-                                &square,
-                                &input,
-                                threshold_distance,
-                                *hashing_offset,
-                            )
-                        })
-                        .collect::<Vec<_>>()
+                    Logged::new(
+                        rayon::prelude::IntoParallelRefIterator::par_iter(&squares).zip(
+                            rayon::prelude::IntoParallelRefIterator::par_iter(&hashing_offsets),
+                        ),
+                    )
+                    .map(|(square, hashing_offset)| {
+                        Graph::parallel_new_opt(
+                            &square,
+                            &input,
+                            threshold_distance,
+                            *hashing_offset,
+                        )
+                    })
+                    .collect::<Vec<_>>();
                 })
                 .1;
             println!("Rayon opt stats:");
