@@ -12,6 +12,7 @@ use grouille::Point;
 extern crate itertools;
 use itertools::Itertools;
 use rand::random;
+use rayon::prelude::*;
 #[cfg(feature = "rayon_logs")]
 use rayon_adaptive::prelude::*;
 #[cfg(feature = "rayon_logs")]
@@ -104,8 +105,8 @@ fn main() {
             let run_log = pool
                 .install(|| {
                     squares
-                        .into_adapt_iter()
-                        .zip(hashing_offsets.into_adapt_iter())
+                        .par_iter()
+                        .zip(hashing_offsets.par_iter())
                         .map(|(square, hashing_offset)| {
                             Graph::parallel_new_opt(
                                 &square,
@@ -122,8 +123,8 @@ fn main() {
             let run_log = pool
                 .install(|| {
                     squares
-                        .into_adapt_iter()
-                        .zip(hashing_offsets.into_adapt_iter())
+                        .iter()
+                        .zip(hashing_offsets.iter())
                         .map(|(square, hashing_offset)| {
                             Graph::new(&square, &input, threshold_distance, *hashing_offset)
                         })
