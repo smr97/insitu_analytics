@@ -72,6 +72,7 @@ fn main() {
             );
             let pool = rayon_logs::ThreadPoolBuilder::new()
                 .num_threads(num_threads)
+                .bind_threads()
                 .build()
                 .expect("logging pool creation failed");
             let input = get_random_points(num_points);
