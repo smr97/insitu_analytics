@@ -73,7 +73,7 @@ fn main() {
             );
             let pool = rayon_logs::ThreadPoolBuilder::new()
                 .num_threads(num_threads)
-                .bind_threads()
+                //.bind_threads()
                 .build()
                 .expect("logging pool creation failed");
             let input = get_random_points(num_points);
@@ -100,6 +100,10 @@ fn main() {
                         .collect::<Vec<_>>()
                 })
                 .1;
+            run_log.save_svg(format!(
+                "adaptive_log_{}_threshold_{}_points.svg",
+                threshold_distance, num_points
+            ));
             println!("Adaptive stats:");
             print_stats(run_log, num_threads);
             let run_log = pool
@@ -120,7 +124,10 @@ fn main() {
                     .collect::<Vec<_>>();
                 })
                 .1;
-            println!("Rayon opt stats:");
+            run_log.save_svg(format!(
+                "rayon_log_{}_threshold_{}_points.svg",
+                threshold_distance, num_points
+            ));
             print_stats(run_log, num_threads);
             let run_log = pool
                 .install(|| {
