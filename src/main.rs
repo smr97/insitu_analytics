@@ -78,7 +78,9 @@ fn main() {
                 .expect("logging pool creation failed");
             let input = get_random_points(num_points);
             let squares = hash_points(&input, threshold_distance);
-            println!("The number of squares will be {}", squares.len());
+            for square in &squares {
+                println!("The number of squares will be {}", square.len());
+            }
             let hashing_offsets = vec![
                 (0.0, 0.0),
                 (threshold_distance, 0.0),
