@@ -60,8 +60,8 @@ fn main() {
     #[cfg(feature = "rayon_logs")]
     {
         let thread_nums = vec![13];
-        let numbers_of_points = vec![200_000, 300_000];
-        let thresholds = vec![0.01, 0.05, 0.1, 0.3, 0.5];
+        let numbers_of_points = vec![200_000];
+        let thresholds = vec![0.01, 0.05];
         for (num_threads, num_points, threshold_distance) in iproduct!(
             thread_nums.into_iter(),
             numbers_of_points.into_iter(),
@@ -78,6 +78,7 @@ fn main() {
                 .expect("logging pool creation failed");
             let input = get_random_points(num_points);
             let squares = hash_points(&input, threshold_distance);
+            println!("The number of squares will be {}", squares.len());
             let hashing_offsets = vec![
                 (0.0, 0.0),
                 (threshold_distance, 0.0),
