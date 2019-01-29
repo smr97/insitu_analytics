@@ -20,7 +20,7 @@ use rayon_logs::{Logged, RunLog, Stats, ThreadPoolBuilder};
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
-const RUNS_NUMBER: usize = 5;
+const RUNS_NUMBER: usize = 20;
 
 fn get_random_points(num_points: usize) -> Vec<Point> {
     repeat_with(|| Point::new(random(), random()))
@@ -29,8 +29,8 @@ fn get_random_points(num_points: usize) -> Vec<Point> {
 }
 
 #[cfg(feature = "rayon_logs")]
-fn print_stats(run_log: RunLog, num_threads: usize) {
-    let vec_run_logs = vec![vec![run_log]];
+fn print_stats(run_log: Vec<RunLog>, num_threads: usize) {
+    let vec_run_logs = vec![run_log];
     let stats = Stats::get_statistics(&vec_run_logs, num_threads as f64, 1.0);
     println!("The total times are");
     for time in stats.total_times() {
@@ -45,7 +45,7 @@ fn print_stats(run_log: RunLog, num_threads: usize) {
         println!("{:?}, ", time);
     }
     println!(
-        "Number of tasks is {}\n",
+        "Number of tasks in the first run is {}\n",
         vec_run_logs[0][0].tasks_logs.len()
     );
     //vec_run_logs[0][0]
@@ -61,7 +61,7 @@ fn main() {
     {
         let thread_nums = vec![13];
         let numbers_of_points = vec![200_000];
-        let thresholds = vec![0.01, 0.05];
+        let thresholds = vec![0.05];
         for (num_threads, num_points, threshold_distance) in iproduct!(
             thread_nums.into_iter(),
             numbers_of_points.into_iter(),
@@ -73,7 +73,7 @@ fn main() {
             );
             let pool = rayon_logs::ThreadPoolBuilder::new()
                 .num_threads(num_threads)
-                //.bind_threads()
+                .bind_threads()
                 .build()
                 .expect("logging pool creation failed");
             let input = get_random_points(num_points);
@@ -87,8 +87,8 @@ fn main() {
                 (0.0, threshold_distance),
                 (threshold_distance, threshold_distance),
             ];
-            let run_log = pool
-                .install(|| {
+            let run_log = repeat_with(|| {
+                pool.install(|| {
                     squares
                         .into_adapt_iter()
                         .zip(hashing_offsets.into_adapt_iter())
@@ -102,15 +102,18 @@ fn main() {
                         })
                         .collect::<Vec<_>>()
                 })
-                .1;
-            run_log.save_svg(format!(
+                .1
+            })
+            .take(RUNS_NUMBER)
+            .collect::<Vec<RunLog>>();
+            run_log[RUNS_NUMBER / 2].save_svg(format!(
                 "adaptive_log_{}_threshold_{}_points.svg",
                 threshold_distance, num_points
             ));
             println!("Adaptive stats:");
             print_stats(run_log, num_threads);
-            let run_log = pool
-                .install(|| {
+            let run_log = repeat_with(|| {
+                pool.install(|| {
                     Logged::new(
                         rayon::prelude::IntoParallelRefIterator::par_iter(&squares).zip(
                             rayon::prelude::IntoParallelRefIterator::par_iter(&hashing_offsets),
@@ -126,14 +129,17 @@ fn main() {
                     })
                     .collect::<Vec<_>>();
                 })
-                .1;
-            run_log.save_svg(format!(
+                .1
+            })
+            .take(RUNS_NUMBER)
+            .collect::<Vec<RunLog>>();
+            run_log[RUNS_NUMBER / 2].save_svg(format!(
                 "rayon_log_{}_threshold_{}_points.svg",
                 threshold_distance, num_points
             ));
             print_stats(run_log, num_threads);
-            let run_log = pool
-                .install(|| {
+            let run_log = repeat_with(|| {
+                pool.install(|| {
                     squares
                         .iter()
                         .zip(hashing_offsets.iter())
@@ -142,7 +148,10 @@ fn main() {
                         })
                         .collect::<Vec<_>>()
                 })
-                .1;
+                .1
+            })
+            .take(RUNS_NUMBER)
+            .collect::<Vec<RunLog>>();
             println!("Sequential stats:");
             print_stats(run_log, num_threads);
         }
