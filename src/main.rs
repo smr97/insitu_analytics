@@ -31,7 +31,7 @@ fn get_random_points(num_points: usize) -> Vec<Point> {
 #[cfg(feature = "rayon_logs")]
 fn print_stats(run_log: Vec<RunLog>, num_threads: usize) {
     let vec_run_logs = vec![run_log];
-    let stats = Stats::get_statistics(&vec_run_logs, num_threads as f64, 1.0);
+    let stats = Stats::get_statistics(&vec_run_logs, num_threads as f64, RUNS_NUMBER as f64);
     println!("The total times are");
     for time in stats.total_times() {
         println!("{}, ", time);
@@ -45,8 +45,12 @@ fn print_stats(run_log: Vec<RunLog>, num_threads: usize) {
         println!("{:?}, ", time);
     }
     println!(
-        "Number of tasks in the first run is {}\n",
-        vec_run_logs[0][0].tasks_logs.len()
+        "Average number of tasks is{}\n",
+        vec_run_logs[0]
+            .iter()
+            .map(|run| run.tasks_logs.len())
+            .sum::<usize>()
+            / RUNS_NUMBER
     );
     //vec_run_logs[0][0]
     //    .save(format!(
