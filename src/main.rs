@@ -14,7 +14,7 @@ use itertools::Itertools;
 use rand::random;
 use rayon::prelude::*;
 #[cfg(feature = "rayon_logs")]
-use rayon_adaptive::prelude::*;
+use rayon_adaptive::{prelude::*, Policy};
 #[cfg(feature = "rayon_logs")]
 use rayon_logs::{Logged, RunLog, Stats, ThreadPoolBuilder};
 use std::iter::repeat_with;
@@ -60,12 +60,6 @@ fn print_stats(run_log: Vec<RunLog>, num_threads: usize) {
             .sum::<usize>()
             / RUNS_NUMBER
     );
-    vec_run_logs[0][RUNS_NUMBER / 2]
-        .save(format!(
-            "parallel_adaptive_{}_threads_{}_pts_{}_thresh.json",
-            num_threads, num_points, threshold_distance
-        ))
-        .expect("Failed");
 }
 
 fn main() {
@@ -122,6 +116,12 @@ fn main() {
                 "adaptive_log_{}_threshold_{}_points.svg",
                 threshold_distance, num_points
             ));
+            run_log[RUNS_NUMBER / 2]
+                .save(format!(
+                    "parallel_adaptive_{}_threads_{}_pts_{}_thresh.json",
+                    num_threads, num_points, threshold_distance
+                ))
+                .expect("Failed");
             println!("Adaptive stats:");
             print_stats(run_log, num_threads);
             let run_log = repeat_with(|| {
@@ -149,7 +149,45 @@ fn main() {
                 "rayon_log_{}_threshold_{}_points.svg",
                 threshold_distance, num_points
             ));
+            run_log[RUNS_NUMBER / 2]
+                .save(format!(
+                    "rayon_{}_threads_{}_pts_{}_thresh.json",
+                    num_threads, num_points, threshold_distance
+                ))
+                .expect("Failed");
             println!("Rayon stats:");
+            print_stats(run_log, num_threads);
+            let run_log = repeat_with(|| {
+                pool.install(|| {
+                    squares
+                        .into_adapt_iter()
+                        .zip(hashing_offsets.into_adapt_iter())
+                        .map(|(square, hashing_offset)| {
+                            Graph::parallel_new_opt(
+                                &square,
+                                &input,
+                                threshold_distance,
+                                *hashing_offset,
+                            )
+                        })
+                        .with_policy(Policy::Rayon)
+                        .collect::<Vec<_>>()
+                })
+                .1
+            })
+            .take(RUNS_NUMBER)
+            .collect::<Vec<RunLog>>();
+            run_log[RUNS_NUMBER / 2].save_svg(format!(
+                "rayon_log_{}_threshold_{}_points.svg",
+                threshold_distance, num_points
+            ));
+            run_log[RUNS_NUMBER / 2]
+                .save(format!(
+                    "with_policy_rayon_{}_threads_{}_pts_{}_thresh.json",
+                    num_threads, num_points, threshold_distance
+                ))
+                .expect("Failed");
+            println!("with_policy(Policy::Rayon) stats:");
             print_stats(run_log, num_threads);
             let run_log = repeat_with(|| {
                 pool.install(|| {
