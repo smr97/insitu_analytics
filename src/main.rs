@@ -60,12 +60,12 @@ fn print_stats(run_log: Vec<RunLog>, num_threads: usize) {
             .sum::<usize>()
             / RUNS_NUMBER
     );
-    //vec_run_logs[0][0]
-    //    .save(format!(
-    //        "parallel_adaptive_{}_threads_{}_pts_{}_thresh.json",
-    //        num_threads, num_points, threshold_distance
-    //    ))
-    //    .expect("Failed");
+    vec_run_logs[0][RUNS_NUMBER / 2]
+        .save(format!(
+            "parallel_adaptive_{}_threads_{}_pts_{}_thresh.json",
+            num_threads, num_points, threshold_distance
+        ))
+        .expect("Failed");
 }
 
 fn main() {
