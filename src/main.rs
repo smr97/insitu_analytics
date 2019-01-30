@@ -20,7 +20,7 @@ use rayon_logs::{Logged, RunLog, Stats, ThreadPoolBuilder};
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
-const RUNS_NUMBER: usize = 20;
+const RUNS_NUMBER: usize = 30;
 
 fn get_random_points(num_points: usize) -> Vec<Point> {
     repeat_with(|| Point::new(random(), random()))
@@ -65,7 +65,7 @@ fn main() {
     {
         let thread_nums = vec![13];
         let numbers_of_points = vec![200_000];
-        let thresholds = vec![0.05];
+        let thresholds = vec![0.007];
         for (num_threads, num_points, threshold_distance) in iproduct!(
             thread_nums.into_iter(),
             numbers_of_points.into_iter(),
@@ -131,7 +131,7 @@ fn main() {
                             *hashing_offset,
                         )
                     })
-                    .collect::<Vec<_>>();
+                    .collect::<Vec<_>>()
                 })
                 .1
             })
@@ -141,6 +141,7 @@ fn main() {
                 "rayon_log_{}_threshold_{}_points.svg",
                 threshold_distance, num_points
             ));
+            println!("Rayon stats:");
             print_stats(run_log, num_threads);
             let run_log = repeat_with(|| {
                 pool.install(|| {

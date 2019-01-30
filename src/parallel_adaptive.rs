@@ -79,7 +79,6 @@ impl Graph {
                         });
                     } else {
                         square.into_adapt_iter().for_each(|point| {
-                            assert!(*point < points.len());
                             unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
                                 square
                                     .iter()
