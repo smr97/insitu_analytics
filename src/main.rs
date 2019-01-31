@@ -163,7 +163,7 @@ fn main() {
                         .into_adapt_iter()
                         .zip(hashing_offsets.into_adapt_iter())
                         .map(|(square, hashing_offset)| {
-                            Graph::parallel_new_opt(
+                            Graph::adaptive_rayon_new(
                                 &square,
                                 &input,
                                 threshold_distance,
