@@ -16,7 +16,7 @@ use rayon::prelude::*;
 #[cfg(feature = "rayon_logs")]
 use rayon_adaptive::{prelude::*, Policy};
 #[cfg(feature = "rayon_logs")]
-use rayon_logs::{Logged, RunLog, Stats, ThreadPoolBuilder};
+use rayon_logs::{create_graph, Block, Logged, RunLog, Stats, ThreadPoolBuilder};
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
@@ -49,6 +49,21 @@ fn print_stats(run_log: Vec<RunLog>, num_threads: usize) {
         vec_run_logs[0]
             .iter()
             .map(|run| run.tasks_logs.len())
+            .sum::<usize>()
+            / RUNS_NUMBER
+    );
+    println!(
+        "Average tasks for rayon is {}\n",
+        vec_run_logs[0]
+            .iter()
+            .map(|run| create_graph(&run.tasks_logs)
+                .iter()
+                .filter(|&b| if let Block::Sequence(_) = b {
+                    true
+                } else {
+                    false
+                })
+                .count())
             .sum::<usize>()
             / RUNS_NUMBER
     );
