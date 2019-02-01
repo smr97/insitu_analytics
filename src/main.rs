@@ -16,7 +16,7 @@ use rayon::prelude::*;
 #[cfg(feature = "rayon_logs")]
 use rayon_adaptive::{prelude::*, Policy};
 #[cfg(feature = "rayon_logs")]
-use rayon_logs::{create_graph, Block, Logged, RunLog, Stats, ThreadPoolBuilder};
+use rayon_logs::{Logged, RunLog, Stats, ThreadPoolBuilder};
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
@@ -44,37 +44,14 @@ fn print_stats(run_log: Vec<RunLog>, num_threads: usize) {
     for time in stats.sequential_times() {
         println!("{:?}, ", time);
     }
-    println!(
-        "Average number of tasks is{}\n",
-        vec_run_logs[0]
-            .iter()
-            .map(|run| run.tasks_logs.len())
-            .sum::<usize>()
-            / RUNS_NUMBER
-    );
-    println!(
-        "Average tasks for rayon is {}\n",
-        vec_run_logs[0]
-            .iter()
-            .map(|run| create_graph(&run.tasks_logs)
-                .iter()
-                .filter(|&b| if let Block::Sequence(_) = b {
-                    true
-                } else {
-                    false
-                })
-                .count())
-            .sum::<usize>()
-            / RUNS_NUMBER
-    );
-    println!(
-        "Average number of stolen tasks is{}\n",
-        vec_run_logs[0]
-            .iter()
-            .map(|run| run.succesfull_steals())
-            .sum::<usize>()
-            / RUNS_NUMBER
-    );
+    println!("Average number of tasks is",);
+    for num in stats.tasks_count() {
+        println!("{}, ", num);
+    }
+    println!("Average number of stolen tasks is",);
+    for num in stats.succesfull_average_steals() {
+        println!("{}, ", num);
+    }
 }
 
 fn main() {
@@ -172,38 +149,38 @@ fn main() {
                 .expect("Failed");
             println!("Rayon stats:");
             print_stats(run_log, num_threads);
-            let run_log = repeat_with(|| {
-                pool.install(|| {
-                    squares
-                        .into_adapt_iter()
-                        .zip(hashing_offsets.into_adapt_iter())
-                        .map(|(square, hashing_offset)| {
-                            Graph::adaptive_rayon_new(
-                                &square,
-                                &input,
-                                threshold_distance,
-                                *hashing_offset,
-                            )
-                        })
-                        .with_policy(Policy::Rayon)
-                        .collect::<Vec<_>>()
-                })
-                .1
-            })
-            .take(RUNS_NUMBER)
-            .collect::<Vec<RunLog>>();
-            run_log[RUNS_NUMBER / 2].save_svg(format!(
-                "rayon_log_{}_threshold_{}_points.svg",
-                threshold_distance, num_points
-            ));
-            run_log[RUNS_NUMBER / 2]
-                .save(format!(
-                    "with_policy_rayon_{}_threads_{}_pts_{}_thresh.json",
-                    num_threads, num_points, threshold_distance
-                ))
-                .expect("Failed");
-            println!("with_policy(Policy::Rayon) stats:");
-            print_stats(run_log, num_threads);
+            //let run_log = repeat_with(|| {
+            //    pool.install(|| {
+            //        squares
+            //            .into_adapt_iter()
+            //            .zip(hashing_offsets.into_adapt_iter())
+            //            .map(|(square, hashing_offset)| {
+            //                Graph::adaptive_rayon_new(
+            //                    &square,
+            //                    &input,
+            //                    threshold_distance,
+            //                    *hashing_offset,
+            //                )
+            //            })
+            //            .with_policy(Policy::Rayon)
+            //            .collect::<Vec<_>>()
+            //    })
+            //    .1
+            //})
+            //.take(RUNS_NUMBER)
+            //.collect::<Vec<RunLog>>();
+            //run_log[RUNS_NUMBER / 2].save_svg(format!(
+            //    "rayon_log_{}_threshold_{}_points.svg",
+            //    threshold_distance, num_points
+            //));
+            //run_log[RUNS_NUMBER / 2]
+            //    .save(format!(
+            //        "with_policy_rayon_{}_threads_{}_pts_{}_thresh.json",
+            //        num_threads, num_points, threshold_distance
+            //    ))
+            //    .expect("Failed");
+            //println!("with_policy(Policy::Rayon) stats:");
+            //print_stats(run_log, num_threads);
             let run_log = repeat_with(|| {
                 pool.install(|| {
                     squares
