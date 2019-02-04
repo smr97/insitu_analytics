@@ -27,11 +27,11 @@ impl Graph {
                 .collect();
         let final_graph_cell = SharedGraph(UnsafeCell::new(final_graph));
         #[cfg(feature = "rayon_logs")]
-        let cliques: Vec<Vec<usize>> = sequential_task(2, grid.len(), || {
-            par_iter(grid)
-                .fold(
-                    || Vec::new(),
-                    |mut inner_points, (square_coordinate, square)| {
+        let cliques: Vec<Vec<usize>> = par_iter(grid)
+            .fold(
+                || Vec::new(),
+                |mut inner_points, (square_coordinate, square)| {
+                    sequential_task(2, square.len(), || {
                         if square.len() > SWITCH_THRESHOLD {
                             let mut smaller_squares = hash_internal(
                                 square.iter().map(|index| (*index, points[*index])),
@@ -98,15 +98,15 @@ impl Graph {
                                     );
                             });
                         }
-                        inner_points
-                    },
-                )
-                .into_iter()
-                .fold(Vec::new(), |mut final_vector, some_vector| {
-                    final_vector.extend(some_vector);
-                    final_vector
-                })
-        });
+                    });
+                    inner_points
+                },
+            )
+            .into_iter()
+            .fold(Vec::new(), |mut final_vector, some_vector| {
+                final_vector.extend(some_vector);
+                final_vector
+            });
         #[cfg(not(feature = "rayon_logs"))]
         let cliques = par_iter(grid)
             .fold(

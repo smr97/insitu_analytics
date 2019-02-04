@@ -71,7 +71,7 @@ fn main() {
             );
             let pool = rayon_logs::ThreadPoolBuilder::new()
                 .num_threads(num_threads)
-                .bind_threads()
+                //.bind_threads()
                 .build()
                 .expect("logging pool creation failed");
             let input = get_random_points(num_points);
@@ -119,42 +119,42 @@ fn main() {
                 .expect("Failed");
             println!("Adaptive stats:");
             print_stats(run_log, num_threads);
-            let run_log = repeat_with(|| {
-                pool.install(|| {
-                    Logged::new(
-                        rayon::prelude::IntoParallelRefIterator::par_iter(&squares).zip(
-                            rayon::prelude::IntoParallelRefIterator::par_iter(&hashing_offsets),
-                        ),
-                    )
-                    .map(|(square, hashing_offset)| {
-                        Graph::parallel_new_opt(
-                            &square,
-                            &input,
-                            threshold_distance,
-                            *hashing_offset,
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                })
-                .1
-            })
-            .take(RUNS_NUMBER)
-            .collect::<Vec<RunLog>>();
-            run_log[RUNS_NUMBER / 2].save_svg_with_filter(
-                format!(
-                    "rayon_log_{}_threshold_{}_points.svg",
-                    threshold_distance, num_points
-                ),
-                2,
-            );
-            run_log[RUNS_NUMBER / 2]
-                .save(format!(
-                    "rayon_{}_threads_{}_pts_{}_thresh.json",
-                    num_threads, num_points, threshold_distance
-                ))
-                .expect("Failed");
-            println!("Rayon stats:");
-            print_stats(run_log, num_threads);
+            //let run_log = repeat_with(|| {
+            //    pool.install(|| {
+            //        Logged::new(
+            //            rayon::prelude::IntoParallelRefIterator::par_iter(&squares).zip(
+            //                rayon::prelude::IntoParallelRefIterator::par_iter(&hashing_offsets),
+            //            ),
+            //        )
+            //        .map(|(square, hashing_offset)| {
+            //            Graph::parallel_new_opt(
+            //                &square,
+            //                &input,
+            //                threshold_distance,
+            //                *hashing_offset,
+            //            )
+            //        })
+            //        .collect::<Vec<_>>()
+            //    })
+            //    .1
+            //})
+            //.take(RUNS_NUMBER)
+            //.collect::<Vec<RunLog>>();
+            //run_log[RUNS_NUMBER / 2].save_svg_with_filter(
+            //    format!(
+            //        "rayon_log_{}_threshold_{}_points.svg",
+            //        threshold_distance, num_points
+            //    ),
+            //    2,
+            //);
+            //run_log[RUNS_NUMBER / 2]
+            //    .save(format!(
+            //        "rayon_{}_threads_{}_pts_{}_thresh.json",
+            //        num_threads, num_points, threshold_distance
+            //    ))
+            //    .expect("Failed");
+            //println!("Rayon stats:");
+            //print_stats(run_log, num_threads);
             //let run_log = repeat_with(|| {
             //    pool.install(|| {
             //        squares
@@ -187,22 +187,22 @@ fn main() {
             //    .expect("Failed");
             //println!("with_policy(Policy::Rayon) stats:");
             //print_stats(run_log, num_threads);
-            let run_log = repeat_with(|| {
-                pool.install(|| {
-                    squares
-                        .iter()
-                        .zip(hashing_offsets.iter())
-                        .map(|(square, hashing_offset)| {
-                            Graph::new(&square, &input, threshold_distance, *hashing_offset)
-                        })
-                        .collect::<Vec<_>>()
-                })
-                .1
-            })
-            .take(RUNS_NUMBER)
-            .collect::<Vec<RunLog>>();
-            println!("Sequential stats:");
-            print_stats(run_log, num_threads);
+            //let run_log = repeat_with(|| {
+            //    pool.install(|| {
+            //        squares
+            //            .iter()
+            //            .zip(hashing_offsets.iter())
+            //            .map(|(square, hashing_offset)| {
+            //                Graph::new(&square, &input, threshold_distance, *hashing_offset)
+            //            })
+            //            .collect::<Vec<_>>()
+            //    })
+            //    .1
+            //})
+            //.take(RUNS_NUMBER)
+            //.collect::<Vec<RunLog>>();
+            //println!("Sequential stats:");
+            //print_stats(run_log, num_threads);
         }
     }
     #[cfg(not(feature = "rayon_logs"))]
