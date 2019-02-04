@@ -104,10 +104,13 @@ fn main() {
             })
             .take(RUNS_NUMBER)
             .collect::<Vec<RunLog>>();
-            run_log[RUNS_NUMBER / 2].save_svg(format!(
-                "adaptive_log_{}_threshold_{}_points.svg",
-                threshold_distance, num_points
-            ));
+            run_log[RUNS_NUMBER / 2].save_svg_with_filter(
+                format!(
+                    "adaptive_log_{}_threshold_{}_points.svg",
+                    threshold_distance, num_points
+                ),
+                2,
+            );
             run_log[RUNS_NUMBER / 2]
                 .save(format!(
                     "parallel_adaptive_{}_threads_{}_pts_{}_thresh.json",
@@ -137,10 +140,13 @@ fn main() {
             })
             .take(RUNS_NUMBER)
             .collect::<Vec<RunLog>>();
-            run_log[RUNS_NUMBER / 2].save_svg(format!(
-                "rayon_log_{}_threshold_{}_points.svg",
-                threshold_distance, num_points
-            ));
+            run_log[RUNS_NUMBER / 2].save_svg_with_filter(
+                format!(
+                    "rayon_log_{}_threshold_{}_points.svg",
+                    threshold_distance, num_points
+                ),
+                2,
+            );
             run_log[RUNS_NUMBER / 2]
                 .save(format!(
                     "rayon_{}_threads_{}_pts_{}_thresh.json",
