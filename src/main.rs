@@ -20,7 +20,7 @@ use rayon_logs::{Logged, RunLog, Stats, ThreadPoolBuilder};
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
 const NUM_POINTS: usize = 100_000;
-const RUNS_NUMBER: usize = 30;
+const RUNS_NUMBER: usize = 1;
 
 fn get_random_points(num_points: usize) -> Vec<Point> {
     repeat_with(|| Point::new(random(), random()))
@@ -57,8 +57,8 @@ fn print_stats(run_log: Vec<RunLog>, num_threads: usize) {
 fn main() {
     #[cfg(feature = "rayon_logs")]
     {
-        let thread_nums = vec![13];
-        let numbers_of_points = vec![200_000];
+        let thread_nums = vec![7];
+        let numbers_of_points = vec![50_000];
         let thresholds = vec![0.007];
         for (num_threads, num_points, threshold_distance) in iproduct!(
             thread_nums.into_iter(),
@@ -111,12 +111,12 @@ fn main() {
                 ),
                 2,
             );
-            run_log[RUNS_NUMBER / 2]
-                .save(format!(
-                    "parallel_adaptive_{}_threads_{}_pts_{}_thresh.json",
-                    num_threads, num_points, threshold_distance
-                ))
-                .expect("Failed");
+            //run_log[RUNS_NUMBER / 2]
+            //    .save(format!(
+            //        "parallel_adaptive_{}_threads_{}_pts_{}_thresh.json",
+            //        num_threads, num_points, threshold_distance
+            //    ))
+            //    .expect("Failed");
             println!("Adaptive stats:");
             print_stats(run_log, num_threads);
             //let run_log = repeat_with(|| {
