@@ -58,7 +58,7 @@ fn main() {
     #[cfg(feature = "rayon_logs")]
     {
         let thread_nums = vec![7];
-        let numbers_of_points = vec![50_000];
+        let numbers_of_points = vec![75_000];
         let thresholds = vec![0.007];
         for (num_threads, num_points, threshold_distance) in iproduct!(
             thread_nums.into_iter(),
