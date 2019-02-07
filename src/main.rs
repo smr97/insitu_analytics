@@ -14,7 +14,6 @@ use rand::random;
 use std::cell::UnsafeCell;
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
-const NUM_POINTS: usize = 200_000;
 const RUNS_NUMBER: usize = 25;
 
 const PREALLOCATION_FACTOR: usize = 100;
@@ -35,12 +34,13 @@ fn main() {
             .expect("Pool creation failed");
         pool.install(|| {
             (0..RUNS_NUMBER).for_each(|_| {
+                let number_of_points = RUNS_NUMBER * 100;
                 println!(
-                    "Experimental setup:: NUM_POINTS: {}, NUM_THREADS: {}",
-                    NUM_POINTS, thread_num
+                    "Experimental setup:: number_of_points: {}, NUM_THREADS: {}",
+                    number_of_points, thread_num
                 );
-                let input = &get_random_points(NUM_POINTS);
-                let point_indices = (0..NUM_POINTS).collect::<Vec<_>>();
+                let input = &get_random_points(number_of_points);
+                let point_indices = (0..number_of_points).collect::<Vec<_>>();
                 let final_graph: Vec<Vec<usize>> =
                     repeat_with(|| Vec::with_capacity(input.len() / PREALLOCATION_FACTOR))
                         .take(input.len())
@@ -64,8 +64,8 @@ fn main() {
                 println!("Adaptive time {}", parallel_time_ms);
 
                 //Sequential run
-                let input = &get_random_points(NUM_POINTS);
-                let point_indices = (0..NUM_POINTS).collect::<Vec<_>>();
+                let input = &get_random_points(number_of_points);
+                let point_indices = (0..number_of_points).collect::<Vec<_>>();
                 let mut final_graph: Vec<Vec<usize>> =
                     repeat_with(|| Vec::with_capacity(input.len() / PREALLOCATION_FACTOR))
                         .take(input.len())
