@@ -19,4 +19,4 @@ thread_binder={path="../thread_binder"}
 [target.'cfg(feature = "rayon_logs")'.dependencies]
 rayon_adaptive={path="../rayon-adaptive", default-features = false, features = ["logs"]}
 [target.'cfg(not(feature = "rayon_logs"))'.dependencies]
-rayon_adaptive={path="../rayon-adaptive", default-features = false, features = ["logs"]}
+rayon_adaptive={path="../rayon-adaptive", features = [] }

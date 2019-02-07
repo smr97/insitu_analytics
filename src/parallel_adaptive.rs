@@ -80,8 +80,6 @@ impl Graph {
                             );
                         });
                     } else {
-                        #[cfg(feature = "rayon_logs")]
-                        tag_active_task(2, square.len());
                         square.into_adapt_iter().for_each(|point| {
                             unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
                                 square
