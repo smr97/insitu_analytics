@@ -8,8 +8,8 @@ use rayon_logs::tag_active_task;
 use std::cell::UnsafeCell;
 use std::collections::{HashMap, HashSet};
 use std::iter::repeat_with;
-const PREALLOCATION_FACTOR: usize = 100;
-const SWITCH_THRESHOLD: usize = 500;
+const PREALLOCATION_FACTOR: usize = 1;
+const SWITCH_THRESHOLD: usize = 600;
 
 struct SharedGraph(UnsafeCell<Vec<Vec<usize>>>);
 unsafe impl Sync for SharedGraph {}
@@ -27,10 +27,13 @@ impl Graph {
                 .collect();
         let final_graph_cell = SharedGraph(UnsafeCell::new(final_graph));
         let cliques: Vec<Vec<usize>> = par_iter(grid)
+            .with_policy(Policy::Rayon)
             .fold(
                 || Vec::new(),
                 |mut inner_points, (square_coordinate, square)| {
                     if square.len() > SWITCH_THRESHOLD {
+                        // makes sure that the number of points in a square never crosses 600
+                        assert!(false);
                         let mut smaller_squares = hash_internal(
                             square.iter().map(|index| (*index, points[*index])),
                             threshold_distance,
