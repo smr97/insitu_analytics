@@ -14,7 +14,7 @@ use rand::random;
 use std::cell::UnsafeCell;
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
-const RUNS_NUMBER: usize = 25;
+const RUNS_NUMBER: usize = 40;
 
 const PREALLOCATION_FACTOR: usize = 100;
 struct SharedGraph(UnsafeCell<Vec<Vec<usize>>>);
@@ -33,12 +33,8 @@ fn main() {
             .build()
             .expect("Pool creation failed");
         pool.install(|| {
-            (0..RUNS_NUMBER).for_each(|_| {
-                let number_of_points = RUNS_NUMBER * 100;
-                println!(
-                    "Experimental setup:: number_of_points: {}, NUM_THREADS: {}",
-                    number_of_points, thread_num
-                );
+            (1..RUNS_NUMBER + 1).for_each(|run| {
+                let number_of_points = run * 100;
                 let input = &get_random_points(number_of_points);
                 let point_indices = (0..number_of_points).collect::<Vec<_>>();
                 let final_graph: Vec<Vec<usize>> =
@@ -61,7 +57,6 @@ fn main() {
                 });
                 let end = time::precise_time_ns();
                 let parallel_time_ms = (end - start) as f64 / 1e6;
-                println!("Adaptive time {}", parallel_time_ms);
 
                 //Sequential run
                 let input = &get_random_points(number_of_points);
@@ -85,7 +80,7 @@ fn main() {
                 }
                 let end = time::precise_time_ns();
                 let sequential_time_ms = (end - start) as f64 / 1e6;
-                println!("Sequential time {}", sequential_time_ms);
+                println!("{}, {}, {}", number_of_points, parallel_time_ms, sequential_time_ms);
             })
         });
     });
