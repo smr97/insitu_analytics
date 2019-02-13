@@ -7,10 +7,8 @@ mod wrapper_functions;
 #[cfg(feature = "rayon_logs")]
 use crate::sequential_algorithm::*;
 use grouille::Point;
-#[macro_use]
-extern crate itertools;
-use itertools::Itertools;
 use rand::random;
+use rayon::prelude::*;
 use std::cell::UnsafeCell;
 use std::iter::repeat_with;
 const THRESHOLD_DISTANCE: f64 = 0.01;
@@ -26,7 +24,6 @@ fn get_random_points(num_points: usize) -> Vec<Point> {
 }
 
 fn main() {
-    use rayon_adaptive::prelude::*;
     (13..14).for_each(|thread_num| {
         let pool = thread_binder::BindableThreadPool::new(thread_binder::POLICY::ROUND_ROBIN_CORE)
             .num_threads(thread_num)
@@ -47,7 +44,7 @@ fn main() {
                         .collect();
                 let final_graph_cell = SharedGraph(UnsafeCell::new(final_graph));
                 let start = time::precise_time_ns();
-                point_indices.into_adapt_iter().for_each(|point| {
+                point_indices.par_iter().for_each(|point| {
                     unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
                         point_indices
                             .iter()
@@ -61,7 +58,7 @@ fn main() {
                 });
                 let end = time::precise_time_ns();
                 let parallel_time_ms = (end - start) as f64 / 1e6;
-                println!("Adaptive time {}", parallel_time_ms);
+                println!("Rayon time {}", parallel_time_ms);
 
                 //Sequential run
                 let input = &get_random_points(number_of_points);
