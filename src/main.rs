@@ -11,10 +11,9 @@ use rand::random;
 use rayon::prelude::*;
 use std::cell::UnsafeCell;
 use std::iter::repeat_with;
-const THRESHOLD_DISTANCE: f64 = 0.01;
-const RUNS_NUMBER: usize = 40;
-
-const PREALLOCATION_FACTOR: usize = 100;
+const THRESHOLD_DISTANCE: f64 = 0.5;
+const MAX_NUM_POINTS: usize = 40;
+const RUNS_NUM: f64 = 50.0;
 struct SharedGraph(UnsafeCell<Vec<Vec<usize>>>);
 unsafe impl Sync for SharedGraph {}
 fn get_random_points(num_points: usize) -> Vec<Point> {
@@ -30,53 +29,63 @@ fn main() {
             .build()
             .expect("Pool creation failed");
         pool.install(|| {
-            (1..RUNS_NUMBER + 1).for_each(|run| {
-                let number_of_points = run * 100;
+            (1..MAX_NUM_POINTS + 1).for_each(|points| {
+                let number_of_points = points * 100;
                 let input = &get_random_points(number_of_points);
                 let point_indices = (0..number_of_points).collect::<Vec<_>>();
-                let final_graph: Vec<Vec<usize>> =
-                    repeat_with(|| Vec::with_capacity(input.len() / PREALLOCATION_FACTOR))
-                        .take(input.len())
-                        .collect();
+                let final_graph: Vec<Vec<usize>> = repeat_with(|| Vec::with_capacity(input.len()))
+                    .take(input.len())
+                    .collect();
                 let final_graph_cell = SharedGraph(UnsafeCell::new(final_graph));
-                let start = time::precise_time_ns();
-                point_indices.par_iter().for_each(|point| {
-                    unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
-                        point_indices
-                            .iter()
-                            .filter(|&p| {
-                                p != point
-                                    && input[*point as usize].distance_to(&input[*p as usize])
-                                        <= THRESHOLD_DISTANCE
-                            })
-                            .cloned(),
-                    );
+                let mut parallel_time_ms = 0.0;
+                (0..RUNS_NUM as usize).for_each(|_| {
+                    let start = time::precise_time_ns();
+                    point_indices.par_iter().for_each(|point| {
+                        unsafe { final_graph_cell.0.get().as_mut() }.unwrap()[*point].extend(
+                            point_indices
+                                .iter()
+                                .filter(|&p| {
+                                    p != point
+                                        && input[*point as usize].distance_to(&input[*p as usize])
+                                            <= THRESHOLD_DISTANCE
+                                })
+                                .cloned(),
+                        );
+                    });
+                    let end = time::precise_time_ns();
+                    parallel_time_ms += (end - start) as f64 / 1e6;
                 });
-                let end = time::precise_time_ns();
-                let parallel_time_ms = (end - start) as f64 / 1e6;
+                parallel_time_ms /= RUNS_NUM;
                 //Sequential run
                 let input = &get_random_points(number_of_points);
                 let point_indices = (0..number_of_points).collect::<Vec<_>>();
                 let mut final_graph: Vec<Vec<usize>> =
-                    repeat_with(|| Vec::with_capacity(input.len() / PREALLOCATION_FACTOR))
+                    repeat_with(|| Vec::with_capacity(input.len()))
                         .take(input.len())
                         .collect();
-                let start = time::precise_time_ns();
-                for point in &point_indices {
-                    final_graph[*point as usize].extend(
-                        point_indices
-                            .iter()
-                            .filter(|&p| {
-                                p != point
-                                    && input[*point as usize].distance_to(&input[*p as usize])
-                                        <= THRESHOLD_DISTANCE
-                            })
-                            .cloned(),
-                    );
-                }
-                let end = time::precise_time_ns();
-                let sequential_time_ms = (end - start) as f64 / 1e6;
-                println!("{}, {}, {}", number_of_points, parallel_time_ms, sequential_time_ms);
+                let mut sequential_time_ms = 0.0;
+                (0..RUNS_NUM as usize).for_each(|_| {
+                    let start = time::precise_time_ns();
+                    for point in &point_indices {
+                        final_graph[*point as usize].extend(
+                            point_indices
+                                .iter()
+                                .filter(|&p| {
+                                    p != point
+                                        && input[*point as usize].distance_to(&input[*p as usize])
+                                            <= THRESHOLD_DISTANCE
+                                })
+                                .cloned(),
+                        );
+                    }
+                    let end = time::precise_time_ns();
+                    sequential_time_ms += (end - start) as f64 / 1e6;
+                });
+                sequential_time_ms /= RUNS_NUM;
+                println!(
+                    "{}, {}, {}",
+                    number_of_points, parallel_time_ms, sequential_time_ms
+                );
             })
         });
     });
